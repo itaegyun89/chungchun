@@ -5,7 +5,7 @@ import path from 'node:path';
 import { URL } from 'node:url';
 
 const PORT = Number(process.env.PORT || 3000);
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || '0.0.0.0';
 // Gemini API 키를 코드에 직접 넣고 싶다면 아래 문자열을 바꾸세요.
 // 권장 방식은 환경변수(GEMINI_API_KEY)입니다.
 const API_KEY = process.env.GEMINI_API_KEY || '여기에_GEMINI_API_KEY_입력';
