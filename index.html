@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#eee4d3" />
+<title>청춘묶음 — 우리의 청춘이 담긴 페이지</title>
+<style>
+:root{
+  --paper:#eee4d3;--paper-hi:#fbf7ef;--paper-deep:#e1d5c0;--ink:#29261f;--muted:#8e8576;
+  --line:#cec2ad;--dark:#28241e;--accent:#8b6e49;--soft:#e8ddca;--white:#fffdf8;
+  --shadow:0 20px 50px rgba(47,39,28,.13);--radius:18px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:#d5cab8;color:var(--ink);font-family:Georgia,"Noto Serif KR",serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed}
+body::before,body::after{content:"";position:fixed;pointer-events:none;z-index:-1;opacity:.65}
+body::before{width:34vw;height:16vw;left:-8vw;top:7vh;background:#e7dbc5;border:1px solid rgba(100,80,55,.08);transform:rotate(-7deg);box-shadow:0 18px 28px rgba(50,40,28,.06)}
+body::after{width:29vw;height:12vw;right:-6vw;bottom:12vh;background:#efe6d5;border:1px solid rgba(100,80,55,.08);transform:rotate(8deg);box-shadow:0 18px 28px rgba(50,40,28,.06)}
+.app{min-height:100vh;display:flex;justify-content:center;padding:0}
+.shell{width:min(1240px,100%);min-height:100vh;background:var(--paper);position:relative;overflow:hidden;box-shadow:0 0 80px rgba(38,30,22,.12)}
+.shell::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.12;background-image:radial-gradient(rgba(0,0,0,.4) .6px,transparent .6px);background-size:7px 7px;mix-blend-mode:multiply}
+.screen{display:none;min-height:100vh;padding:30px 46px 110px;position:relative;opacity:0}
+.screen.active{display:block;animation:pageIn .44s cubic-bezier(.2,.8,.25,1) both}
+@keyframes pageIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+@keyframes filmReveal{from{opacity:0;transform:translateY(20px) rotate(var(--r))}to{opacity:1;transform:translateY(0) rotate(var(--r))}}
+@keyframes sheetOpen{from{opacity:0;transform:translateY(18px) scale(.97) rotate(-1deg)}to{opacity:1;transform:none}}
+@keyframes develop{from{transform:translateY(0)}to{transform:translateY(-100%)}}
+@keyframes punch{0%{opacity:0;transform:translateY(-130px) rotate(-7deg)}28%{opacity:1;transform:translateY(0) rotate(-7deg)}48%{transform:translateY(11px) rotate(-7deg)}62%{transform:translateY(0) rotate(-7deg)}100%{opacity:0;transform:translateY(-130px) rotate(-7deg)}}
+@keyframes ringPulse{0%{box-shadow:0 0 0 0 rgba(139,110,73,.3)}100%{box-shadow:0 0 0 22px rgba(139,110,73,0)}}
+@keyframes shimmer{0%,100%{opacity:.7}50%{opacity:1}}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:28px;position:relative;z-index:5}
+.brand{font-weight:800;font-size:19px;letter-spacing:.08em;display:flex;gap:10px;align-items:center}.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--dark);display:inline-block;box-shadow:0 0 0 4px #d8ccb9}
+.brand small{display:block;font-size:10px;color:var(--muted);font-weight:400;letter-spacing:.16em;margin-top:2px}
+.nav{display:flex;gap:7px;flex-wrap:wrap}.nav button{border:1px solid var(--line);background:rgba(255,255,255,.32);padding:9px 13px;border-radius:999px;font-size:12px}.nav button.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+.mobile-nav{display:none}
+.hero{min-height:72vh;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;padding:25px 0 40px}
+.hero-paper{position:absolute;width:290px;height:360px;background:rgba(255,252,245,.38);border:1px solid rgba(100,80,55,.08);box-shadow:var(--shadow);transform:rotate(-7deg);left:8%;top:12%}.hero-paper::after{content:"";position:absolute;left:50%;top:-13px;transform:translateX(-50%) rotate(-1deg);width:110px;height:34px;background:#d4b98f;opacity:.6}
+.hero-film{position:absolute;width:170px;height:220px;background:#111;color:white;right:12%;bottom:10%;transform:rotate(8deg);padding:9px;box-shadow:var(--shadow)}.hero-film::before{content:"";position:absolute;inset:12px 12px 48px;background:linear-gradient(135deg,#8b8172,#35322d)}.hero-film::after{content:"";position:absolute;left:12px;right:12px;bottom:12px;height:20px;background:#111}
+.hero-inner{position:relative;z-index:2;max-width:780px}.eyebrow{font-size:11px;letter-spacing:.3em;color:var(--muted);margin-bottom:16px}.title{font-size:clamp(58px,9vw,108px);line-height:.95;margin:0 0 14px;letter-spacing:-.06em}.tagline{font-size:17px;color:#716858;letter-spacing:.1em}.hero-actions{margin-top:34px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.primary,.secondary,.ghost{border-radius:12px;padding:13px 19px;border:1px solid var(--dark);background:var(--dark);color:#fff}.secondary{background:rgba(255,255,255,.32);color:var(--ink);border-color:var(--line)}.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.sticker-row{margin-top:30px;display:flex;justify-content:center;gap:8px;flex-wrap:wrap}.sticker{font-size:11px;padding:7px 10px;border:1px dashed #bcae9a;background:#f7efe2;transform:rotate(-2deg)}.sticker:nth-child(2){transform:rotate(2deg)}.sticker:nth-child(3){transform:rotate(-1deg)}
+.page-title{font-size:40px;margin:0 0 7px;letter-spacing:-.04em}.page-sub{color:var(--muted);margin:0 0 24px}
+.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;margin-bottom:20px}.section-head h2{margin:0;font-size:27px}.section-head p{margin:0;color:var(--muted);font-size:12px}
+.about-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}.card{background:rgba(251,247,239,.75);border:1px solid var(--line);padding:24px;border-radius:6px;box-shadow:0 12px 28px rgba(56,45,30,.08)}.card h3{margin:0 0 9px;font-size:22px}.card p{line-height:1.7;margin:0;color:#4e493e}.steps{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px}.step{background:#fffdfa;border:1px solid var(--line);padding:13px;border-radius:5px}.step b{font-size:10px;color:var(--muted);display:block;margin-bottom:5px}
+.category-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.cat{position:relative;border:1px solid var(--line);background:rgba(251,247,239,.8);min-height:145px;padding:18px;text-align:left;overflow:hidden;border-radius:7px;box-shadow:0 8px 20px rgba(56,45,30,.05)}.cat::before{content:"";position:absolute;right:-25px;top:-25px;width:95px;height:95px;border:1px solid #dfd3c0;border-radius:50%}.cat small{display:block;font-size:11px;color:var(--muted);margin-bottom:10px}.cat strong{font-size:23px}.cat span{display:block;font-size:10px;color:#9c927f;margin-top:9px}
+.inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+.question-stage{height:620px;position:relative;background:linear-gradient(135deg,#c9c0b0,#ded7ca);border:1px solid #c5bcad;overflow:hidden;box-shadow:inset 0 0 70px rgba(70,60,46,.09);border-radius:8px}.question-stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 0 40%,rgba(255,255,255,.08) 50%,transparent 60%)}
+.question-hint{position:absolute;left:18px;top:18px;z-index:4;background:rgba(255,255,255,.76);padding:8px 11px;font-size:11px;border:1px solid rgba(160,150,132,.5);border-radius:999px}
+.film{position:absolute;width:228px;background:#111;color:#fff;border:1px solid #292929;padding:12px 12px 18px;box-shadow:0 15px 26px rgba(0,0,0,.26);user-select:none;touch-action:none;--r:0deg;animation:filmReveal .38s both}.film .film-hole{width:17px;height:17px;border-radius:50%;background:#030303;margin:-6px auto 10px;box-shadow:inset 0 0 0 1px #3d3d3d}.film .film-photo{height:128px;background:#0b0b0b;display:flex;align-items:center;justify-content:center;overflow:hidden}.film .film-question{padding-top:12px;font-size:14px;line-height:1.5}.film .film-num{margin-top:9px;font-size:9px;color:#838383;letter-spacing:.08em}.film.answerable:hover{outline:2px solid rgba(255,255,255,.72);transform:translateY(-4px) rotate(0deg)!important}
+.record-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:13px}.record-head .count{font-size:13px;color:var(--muted)}
+.editor{display:grid;grid-template-columns:1fr 390px;gap:24px}.preview-paper{min-height:620px;background:#e9dfd0;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;position:relative;border-radius:8px;overflow:hidden}.selected-film{width:320px;background:#fff;padding:14px 14px 36px;box-shadow:0 20px 38px rgba(40,30,20,.2);transform:rotate(-2deg);position:relative;animation:sheetOpen .48s both}.selected-film .photo{height:360px;background:#1a1a1a;overflow:hidden;position:relative}.selected-film .photo img{width:100%;height:100%;object-fit:cover;display:block}.selected-film .photo img.bw{filter:grayscale(1)}.selected-film .photo img.warm{filter:sepia(.42) saturate(.82) brightness(.98)}.selected-film .photo img.fade{filter:sepia(.16) contrast(.82) brightness(1.02);opacity:.9}.selected-film .photo::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.08;background-image:radial-gradient(rgba(0,0,0,.8) .7px,transparent .7px);background-size:3px 3px;mix-blend-mode:multiply}.develop-overlay{position:absolute;inset:0;background:rgba(8,8,8,.68);transform:translateY(0);z-index:3}.selected-film.developing .develop-overlay{animation:develop 1.8s cubic-bezier(.35,.05,.15,1) forwards}.caption{padding:12px 4px 0}.caption .q{font-size:10px;color:#80786b;margin-bottom:8px}.caption .a{font-size:16px;line-height:1.5;min-height:42px}.photo-tools{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.filter-btn{border:1px solid var(--line);background:#fffdfa;border-radius:999px;padding:7px 10px;font-size:10px}.filter-btn.active{background:var(--dark);color:#fff;border-color:var(--dark)}
+.puncher{position:absolute;width:94px;height:66px;background:#d9d1c4;border:1px solid #aaa193;border-radius:13px 13px 20px 20px;left:calc(50% - 160px + 6px);top:calc(50% - 310px);z-index:7;transform:translateY(-130px) rotate(-7deg);opacity:0;box-shadow:0 12px 20px rgba(40,30,20,.18)}.puncher::before{content:"";position:absolute;width:48px;height:22px;background:#bbb1a3;left:18px;top:18px;border-radius:4px}.puncher::after{content:"";position:absolute;width:18px;height:13px;background:#eee8dd;left:38px;bottom:-8px;border:1px solid #9f9689;border-radius:0 0 5px 5px}.puncher.active{animation:punch .8s ease forwards}.punch-hole{position:absolute;width:15px;height:15px;border-radius:50%;background:#d0c6b5;left:15px;top:15px;opacity:0;z-index:6;box-shadow:inset 0 0 0 2px #b2a796}.punch-hole.visible{opacity:1}
+.form-panel{background:rgba(251,247,239,.84);border:1px solid var(--line);padding:22px;position:relative;border-radius:8px}.form-panel h3{margin:0 0 6px;font-size:21px}.form-panel .qtext{font-size:13px;color:#6f675a;line-height:1.6;margin:0 0 18px}.upload-box{border:1px dashed #aaa090;padding:14px;text-align:center;background:#fffdfa;border-radius:8px}.upload-box input{display:none}.upload-label{display:inline-block;border:1px solid var(--line);padding:10px 14px;background:white;border-radius:8px;cursor:pointer;font-size:12px}.upload-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}.file-note{font-size:11px;color:var(--muted);margin-top:7px;min-height:16px}.answer{width:100%;margin-top:12px;border:1px solid var(--line);background:white;padding:12px 13px;resize:none;min-height:102px;outline:none;border-radius:8px}.answer:focus{border-color:#9b917f}.submit{width:100%;margin-top:10px;padding:13px;border:0;background:var(--dark);color:white;border-radius:10px}.submit:disabled{opacity:.62}
+.list-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.folder{border:1px solid var(--line);background:rgba(251,247,239,.8);padding:12px;text-align:left;border-radius:6px;box-shadow:0 8px 18px rgba(56,45,30,.05)}.folder-cover{height:180px;background:#ddd0bc;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}.folder-cover img{width:100%;height:100%;object-fit:cover;filter:sepia(.1) saturate(.88)}.folder h3{margin:11px 2px 3px;font-size:18px}.folder p{margin:0 2px;color:var(--muted);font-size:11px}
+.share-layout{display:grid;grid-template-columns:280px 1fr;gap:18px}.share-list{display:flex;flex-direction:column;gap:9px}.share-item{display:flex;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);background:rgba(255,255,255,.35);border-radius:8px;cursor:pointer}.share-item.selected{background:#fffefa;box-shadow:0 6px 15px rgba(50,40,30,.06)}.share-thumb{width:50px;height:62px;background:#e1d6c5;overflow:hidden}.share-thumb img{width:100%;height:100%;object-fit:cover}.share-preview{background:#e2d6c4;border:1px solid var(--line);padding:18px;border-radius:8px;min-height:520px}.contact-sheet{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.contact-cell{background:#fff;border:1px solid #ddd3c3;padding:9px;cursor:pointer;transform:rotate(var(--r));box-shadow:0 8px 15px rgba(50,40,30,.08)}.contact-cell:nth-child(odd){--r:-.7deg}.contact-cell:nth-child(even){--r:.7deg}.contact-cell img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;filter:sepia(.08)}.contact-cell .t{padding:7px 4px;font-size:11px;line-height:1.45}
+.friend-layout{display:grid;grid-template-columns:1fr 1fr;gap:18px}.friend-card{background:rgba(251,247,239,.8);border:1px solid var(--line);padding:18px;border-radius:8px}.friend-card h3{margin:0 0 10px}.friend-add{display:flex;gap:8px}.friend-add input{flex:1;border:1px solid var(--line);background:#fffdfa;padding:10px 12px;border-radius:8px;outline:none}.friend-list{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:13px}.friend{display:flex;align-items:center;gap:9px;padding:10px;border:1px dashed var(--line);background:#fffdfa}.avatar{width:38px;height:38px;border-radius:50%;background:#c9b89d;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}.friend small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}.badge{padding:13px;border:1px solid var(--line);background:#fffdfa;min-height:96px;position:relative}.badge.locked{opacity:.44}.badge strong{display:block;font-size:14px;margin-bottom:5px}.badge small{color:var(--muted);line-height:1.45}.badge .mark{position:absolute;right:9px;top:8px;font-size:10px}
+.story-strip{display:flex;gap:14px;overflow:auto;padding:10px 2px 20px;scrollbar-width:thin}.story{min-width:164px;width:164px;background:#fffdfa;border:1px solid var(--line);box-shadow:0 9px 20px rgba(55,45,30,.08);padding:9px;transform:rotate(var(--r));position:relative}.story::before{content:"";position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:66px;height:17px;background:#d6bc91;opacity:.65}.story img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;filter:sepia(.08)}.story .story-meta{padding:8px 3px 2px}.story .story-meta b{font-size:12px}.story .story-meta small{display:block;color:var(--muted);font-size:9px;margin-top:3px}.story-add{min-width:164px;width:164px;min-height:230px;border:1px dashed var(--line);background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;text-align:center;padding:15px;color:var(--muted)}
+.title-progress{display:flex;align-items:center;gap:8px;margin-top:10px}.progress-bar{height:8px;flex:1;background:#ded3c3;border-radius:999px;overflow:hidden}.progress-bar span{display:block;height:100%;background:#6c5b46;border-radius:999px}.progress-label{font-size:11px;color:var(--muted);min-width:58px;text-align:right}
+.modal{position:fixed;inset:0;background:rgba(30,25,19,.56);display:none;align-items:center;justify-content:center;padding:20px;z-index:100}.modal.show{display:flex;animation:pop .22s both}.modal-card{width:min(780px,100%);max-height:90vh;overflow:auto;background:var(--paper-hi);border:1px solid #c8bba7;box-shadow:0 28px 80px rgba(0,0,0,.24);padding:22px;position:relative}.x{position:absolute;right:11px;top:10px;width:29px;height:29px;border-radius:50%;border:1px solid var(--line);background:#fffefa;font-size:16px;line-height:1}.camera-modal .modal-card{width:min(920px,100%);background:#191613;color:#fff;border-color:#39332c}.camera-stage{background:#0b0b0b;min-height:60vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.camera-stage video{width:100%;height:auto;max-height:64vh;object-fit:cover;display:block}.camera-stage .camera-filter-layer{position:absolute;inset:0;pointer-events:none}.camera-controls{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;padding-top:12px}.camera-controls button{border:1px solid #5e554b;background:#2a2520;color:#fff;padding:10px 14px;border-radius:999px;font-size:12px}.shutter{width:58px;height:58px;border-radius:50%;border:4px solid #fff!important;background:transparent!important;padding:0!important}.camera-note{font-size:11px;color:#aaa39a;text-align:center;margin-top:8px}.bundle-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}.bundle-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.polaroid{background:#fff;padding:11px 11px 24px;box-shadow:0 16px 35px rgba(40,30,20,.14);position:relative}.polaroid .hole{position:absolute;left:12px;top:11px;width:13px;height:13px;border-radius:50%;background:#d2c7b6;border:1px solid #aa9f90;box-shadow:inset 0 0 0 2px #b8ae9e}.polaroid img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;filter:sepia(.08)}.polaroid .pq{margin-top:8px;color:#827867;font-size:10px}.polaroid .pa{font-size:15px;line-height:1.5;margin-top:5px}.ring-effect{position:absolute;left:19px;top:18px;width:22px;height:22px;border:2px solid #8d7658;border-radius:50%;opacity:0}.ring-effect.visible{opacity:1;animation:ringPulse .8s both}
+.toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,20px);padding:11px 15px;background:var(--dark);color:#fff;border-radius:999px;font-size:12px;opacity:0;pointer-events:none;z-index:150;transition:.25s}.toast.show{opacity:1;transform:translate(-50%,0)}
+.empty{padding:40px;text-align:center;color:var(--muted);border:1px dashed var(--line);background:rgba(255,255,255,.2)}
+.ai-status{font-size:10px;color:var(--muted);min-height:15px;margin-top:7px}.ai-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:#fffdfa;font-size:10px}.ai-dot{width:7px;height:7px;border-radius:50%;background:#6e5c48;animation:shimmer 1.3s infinite}
+.settings-box{display:grid;grid-template-columns:1fr 1fr;gap:10px}.settings-box label{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.settings-box input{width:100%;border:1px solid var(--line);background:#fffdfa;padding:10px;border-radius:7px;outline:none}
+.backline{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}.mini-link{border:0;background:transparent;color:var(--muted);padding:0;font-size:11px}
+@media(max-width:900px){
+  .screen{padding:22px 20px 100px}.nav{display:none}.mobile-nav{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:80;background:rgba(250,247,239,.95);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:7px 8px max(7px,env(safe-area-inset-bottom))}.mobile-nav button{border:0;background:transparent;color:var(--muted);font-size:10px;padding:6px 4px}.mobile-nav button.active{color:var(--ink);font-weight:700}.about-grid,.friend-layout,.editor,.share-layout{grid-template-columns:1fr}.category-grid{grid-template-columns:repeat(2,1fr)}.list-grid{grid-template-columns:repeat(2,1fr)}.hero-paper{left:-10%;top:14%;width:220px;height:300px}.hero-film{right:-2%;bottom:13%;width:135px;height:178px}.title{font-size:clamp(50px,15vw,78px)}
+  .question-stage{height:67vh;min-height:510px}.film{width:200px}.editor{display:grid}.preview-paper{min-height:500px}.selected-film{width:min(320px,78vw)}.selected-film .photo{height:330px}.puncher{left:calc(50% - 160px + 6px);top:calc(50% - 252px)}.contact-sheet{grid-template-columns:1fr}.bundle-grid{grid-template-columns:1fr}.badge-grid{grid-template-columns:repeat(2,1fr)}.settings-box{grid-template-columns:1fr}
+}
+@media(max-width:580px){
+  .screen{padding:18px 14px 98px}.topbar{margin-bottom:18px}.brand{font-size:17px}.hero{min-height:76vh}.hero-paper{width:170px;height:220px;left:-22%;top:14%}.hero-film{width:110px;height:145px;right:-5%;bottom:14%}.tagline{font-size:14px}.category-grid{gap:9px}.cat{min-height:128px;padding:14px}.cat strong{font-size:19px}.list-grid{grid-template-columns:1fr 1fr;gap:9px}.folder-cover{height:145px}.question-stage{height:68vh;min-height:490px}.film{width:178px}.film .film-photo{height:104px}.film .film-question{font-size:12px}.form-panel{padding:17px}.preview-paper{min-height:450px}.selected-film{width:260px;padding:11px 11px 30px}.selected-film .photo{height:285px}.puncher{width:78px;height:56px;left:calc(50% - 130px);top:calc(50% - 222px)}.puncher::before{left:14px;top:15px}.puncher::after{left:31px}.friend-list{grid-template-columns:1fr}.badge-grid{grid-template-columns:1fr 1fr}.page-title{font-size:31px}.section-head{align-items:flex-start;flex-direction:column}.modal{padding:0}.modal-card{height:auto;max-height:100vh;min-height:100%;padding:20px 14px 30px}.camera-modal .modal-card{min-height:100%;background:#151310}.camera-stage{min-height:72vh}.camera-controls{padding-bottom:8px}.story{min-width:145px;width:145px}.story-add{min-width:145px;width:145px}
+}
+
+.back-home{margin:0 0 14px}
+.back-home button{border:1px solid var(--line);background:rgba(255,255,255,.55);color:var(--ink);padding:9px 13px;border-radius:999px;font-size:12px;cursor:pointer}
+.back-home button:hover{background:#fffdfa;transform:translateX(-2px)}
+</style>
+</head>
+<body>
+<div class="app"><div class="shell">
+
+<section id="homeScreen" class="screen active">
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>우리의 청춘이 담긴 페이지</small></div></div><div class="nav"><button data-nav="homeScreen" class="active">홈</button><button data-nav="recordScreen">기록</button><button data-nav="listScreen">목록</button><button data-nav="shareScreen">공유</button></div></div>
+  <div class="hero">
+    <div class="hero-paper"></div><div class="hero-film"></div>
+    <div class="hero-inner">
+      <div class="eyebrow">PHOTO · QUESTION · ONE LINE</div>
+      <h1 class="title">청춘묶음</h1>
+      <div class="tagline">우리의 청춘이 담긴 페이지</div>
+      <div class="hero-actions"><button id="startBtn" class="primary">기록 시작</button><button id="aboutBtn" class="secondary">청춘묶음에 대하여</button><button id="friendBtn" class="secondary">친구와 보기</button></div>
+      <div class="sticker-row"><span class="sticker">10 PAGES</span><span class="sticker">ANALOG FEEL</span><span class="sticker">YOUR MEMORY</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="aboutScreen" class="screen">
+  <div class="back-home"><button data-back="homeScreen">← 홈으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>우리의 청춘이 담긴 페이지</small></div></div><div class="nav"><button data-nav="homeScreen">홈</button><button data-nav="recordScreen">기록</button><button data-nav="listScreen">목록</button><button data-nav="shareScreen">공유</button></div></div>
+  <h1 class="page-title">청춘묶음에 대하여</h1><p class="page-sub">사진만 남기는 게 아니라, 그때의 생각까지 한 장에 담는 기록.</p>
+  <div class="about-grid">
+    <div class="card"><h3>청춘묶음이란?</h3><p>사진과 질문, 한 줄의 생각을 하나의 페이지에 담고<br>10개의 페이지를 모아 <b>나만의 청춘을 한 묶음으로 기록하는 서비스</b>입니다.</p><div class="steps"><div class="step"><b>01</b>질문을 고른다</div><div class="step"><b>02</b>사진을 남긴다</div><div class="step"><b>03</b>한 줄을 적는다</div><div class="step"><b>04</b>10장이 모이면 묶인다</div></div></div>
+    <div class="card"><h3>기록의 방식</h3><p>필름을 고르고, 사진을 넣고, 한 줄을 적는다.<br>마지막에는 실제 사진처럼 어두운 화면에서 인화가 진행되고, 왼쪽 위를 펀처로 찍어 고리에 연결한다.</p><div style="margin-top:16px" class="ai-chip"><span class="ai-dot"></span> 질문은 직접 만들 수도 있고 AI로 새로 만들 수도 있음</div></div>
+  </div>
+</section>
+
+<section id="recordScreen" class="screen">
+  <div id="recordTopBack" class="back-home"><button data-back="homeScreen">← 홈으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>기록을 한 장씩 모으기</small></div></div></div>
+  <div id="recordHome">
+    <h1 class="page-title">기록 시작</h1><p class="page-sub">무엇을 기록할지 골라봐.</p>
+    <div class="inline-actions" style="margin-bottom:18px"><button id="addCategoryBtn" class="secondary">＋ 내 카테고리 추가</button><button id="aiHomeBtn" class="ghost">✦ AI 질문 만들기</button></div>
+    <div id="categoryGrid" class="category-grid"></div>
+  </div>
+  <div id="questionView" style="display:none">
+    <div class="backline"><button id="backToCategories" class="mini-link">← 카테고리</button><button data-back="homeScreen" class="mini-link">← 홈</button><div class="record-head" style="margin:0;flex:1"><div><h2 id="categoryTitle" class="page-title" style="font-size:28px;margin:0"></h2><div id="recordBreadcrumb" style="font-size:11px;color:var(--muted);margin-top:4px"></div></div><div class="count" id="questionCount"></div></div></div>
+    <div class="inline-actions" style="margin-bottom:13px"><button id="aiQuestionBtn" class="secondary">✦ 이 카테고리 질문 다시 만들기</button><button id="customQuestionBtn" class="ghost">＋ 질문 직접 추가</button></div>
+    <div class="question-stage" id="questionStage"></div>
+  </div>
+</section>
+
+<section id="editorScreen" class="screen">
+  <div class="back-home"><button data-back="recordScreen">← 질문 선택으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>한 장을 완성하는 중</small></div></div></div>
+  <div class="record-head"><div><div style="font-size:11px;color:var(--muted)" id="editorCategory"></div><h1 class="page-title" style="font-size:31px">이 순간을 남겨보자</h1><p class="page-sub" style="margin-bottom:0">사진과 한 줄을 채우면 한 장의 폴라로이드가 만들어져.</p></div></div>
+  <div class="editor">
+    <div class="preview-paper" id="previewPaper">
+      <div class="selected-film" id="selectedPolaroid"><div class="photo"><img id="selectedImage" alt="업로드된 사진" style="display:none"><div id="developOverlay" class="develop-overlay"></div></div><div class="caption"><div class="q" id="selectedQuestion">질문</div><div class="a" id="selectedAnswerPreview">한 줄의 생각이 여기에 남아.</div></div><div id="punchHole" class="punch-hole"></div><div id="ringEffect" class="ring-effect"></div></div>
+      <div id="puncher" class="puncher"></div>
+    </div>
+    <div class="form-panel"><h3>기록 채우기</h3><p class="qtext" id="editorQuestionText"></p>
+      <div class="upload-box"><div class="upload-row"><label class="upload-label" for="photoInput">사진 파일 넣기</label><button id="cameraBtn" type="button" class="upload-label">카메라로 찍기</button></div><input id="photoInput" type="file" accept="image/*"><div class="file-note" id="fileNote">아직 사진을 넣지 않았어</div></div>
+      <div class="photo-tools"><button class="filter-btn active" data-filter="normal">기본</button><button class="filter-btn" data-filter="bw">흑백</button><button class="filter-btn" data-filter="warm">황색</button><button class="filter-btn" data-filter="fade">노이즈/바랜 필름</button></div>
+      <textarea id="answerInput" class="answer" maxlength="100" placeholder="질문에 대한 한 줄의 생각을 적어줘."></textarea>
+      <button id="submitBtn" class="submit">폴라로이드 완성하기</button>
+      <div id="aiStatus" class="ai-status"></div>
+      <button id="backQuestions" class="mini-link" style="margin-top:14px">← 질문 고르기로 돌아가기</button>
+    </div>
+  </div>
+</section>
+
+<section id="listScreen" class="screen">
+  <div class="back-home"><button data-back="homeScreen">← 홈으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>모아 둔 페이지들</small></div></div><div class="nav"><button data-nav="homeScreen">홈</button><button data-nav="recordScreen">기록</button><button data-nav="listScreen" class="active">목록</button><button data-nav="shareScreen">공유</button></div></div>
+  <h1 class="page-title">목록</h1><p class="page-sub">10장이 다 모이지 않아도 지금까지의 묶음을 볼 수 있어.</p>
+  <div class="title-progress"><div class="progress-bar"><span id="totalProgress" style="width:0%"></span></div><div id="totalProgressLabel" class="progress-label">0장 기록</div></div>
+  <div id="folderGrid" class="list-grid" style="margin-top:18px"></div>
+</section>
+
+<section id="shareScreen" class="screen">
+  <div class="back-home"><button data-back="homeScreen">← 홈으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>다시 꺼내어 보기</small></div></div></div>
+  <h1 class="page-title">공유</h1><p class="page-sub">묶음 전체를 한 장으로 저장하거나, 골라서 따로 저장할 수 있어.</p>
+  <div class="share-layout"><div id="shareList" class="share-list"></div><div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button id="downloadAll" class="primary">전체 저장</button><button id="downloadSelected" class="secondary">개별 선택 저장</button></div><div id="sharePreview" class="share-preview"></div></div></div>
+</section>
+
+<section id="settingsScreen" class="screen">
+  <div class="back-home"><button data-back="homeScreen">← 홈으로</button></div>
+  <div class="topbar"><div class="brand"><span class="dot"></span><div>청춘묶음<small>프로토타입 설정</small></div></div></div>
+  <h1 class="page-title">설정</h1><p class="page-sub">Gemini 질문 생성과 프로필을 연결하는 곳.</p>
+  <div class="card"><div class="settings-box"><div><label>내 별명</label><input id="profileName" placeholder="태균"></div><div><label>Gemini 서버 주소</label><input id="apiBase" placeholder="/api"></div></div><div style="display:flex;gap:8px;margin-top:12px"><button id="saveSettings" class="primary">저장</button><button id="resetData" class="secondary">기록 초기화</button></div><div class="ai-status" style="margin-top:10px">브라우저에 API 키를 넣지 않고 서버에서 Gemini를 호출하는 구조가 기본임.</div></div>
+</section>
+
+<nav class="mobile-nav"><button data-nav="homeScreen">홈</button><button data-nav="recordScreen">기록</button><button data-nav="listScreen">목록</button><button data-nav="shareScreen">공유</button></nav>
+
+<div id="bundleModal" class="modal"><div class="modal-card"><button class="x" data-close="bundleModal">×</button><div class="bundle-head"><div><h2 id="bundleTitle" style="margin:0 0 5px"></h2><div id="bundleCount" style="font-size:11px;color:var(--muted)"></div></div><button id="bundleDownload" class="secondary">이 묶음 저장</button></div><div id="bundleGrid" class="bundle-grid"></div></div></div>
+<div id="questionModal" class="modal"><div class="modal-card"><button class="x" data-close="questionModal">×</button><h2 style="margin-top:4px">새 질문 만들기</h2><p style="color:var(--muted);font-size:12px">직접 만든 카테고리에 질문을 하나 추가하거나, AI로 새 질문을 뽑을 수 있어.</p><textarea id="customQuestionInput" class="answer" placeholder="질문을 입력해줘." style="min-height:88px"></textarea><div style="display:flex;gap:8px;margin-top:10px"><button id="saveCustomQuestion" class="primary">질문 추가</button><button id="aiModalQuestion" class="secondary">AI로 만들기</button></div><div id="questionModalStatus" class="ai-status"></div></div></div>
+<div id="categoryModal" class="modal"><div class="modal-card"><button class="x" data-close="categoryModal">×</button><h2 style="margin-top:4px">내 카테고리 추가</h2><p style="color:var(--muted);font-size:12px">기본 카테고리 외에 내 기록 주제를 직접 만들 수 있어.</p><input id="newCategoryInput" class="answer" style="min-height:0" placeholder="예: 여행"><div style="display:flex;gap:8px;margin-top:10px"><button id="saveCategory" class="primary">카테고리 만들기</button></div></div></div>
+<div id="cameraModal" class="modal camera-modal"><div class="modal-card"><button class="x" data-close="cameraModal">×</button><div class="camera-stage"><video id="cameraVideo" playsinline autoplay muted></video><canvas id="cameraCanvas" style="display:none"></canvas><div id="cameraFilterLayer" class="camera-filter-layer"></div></div><div class="camera-controls"><button class="filter-btn active" data-camera-filter="normal">기본</button><button class="filter-btn" data-camera-filter="bw">흑백</button><button class="filter-btn" data-camera-filter="warm">황색</button><button class="filter-btn" data-camera-filter="fade">노이즈/바랜 필름</button><button id="shutterBtn" class="shutter" aria-label="사진 촬영"></button><button id="switchCamera" type="button">전환</button></div><div class="camera-note">휴대폰에서는 카메라 권한을 허용하면 바로 촬영할 수 있어. PC에서는 웹캠이 필요해.</div></div></div>
+<div id="toast" class="toast"></div>
+</div></div>
+
+<script>
+(() => {
+'use strict';
+
+const DEFAULT_CATEGORIES = {
+  '음식':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이것에 별명을 붙인다면?','처음 접했을 때, 나는 몇 살이었는가?','처음 접하게 된 계기는?','가장 기억에 남는 것은?','이것이 나에게 특별한 이유는?','이 음식의 맛을 다른 음식에 비유한다면?','이 음식에서 가장 예상 밖이었던 점은?'],
+  '장소':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이곳에 별명을 붙인다면?','처음 이곳에 왔을 때, 나는 몇 살이었는가?','처음 오게 된 계기는?','가장 기억에 남는 것은?','이곳이 나에게 특별한 이유는?','이 장소에서 가장 오래 머물고 싶은 곳은 어디인가?','이 장소에서 꼭 해보고 싶은 것은?'],
+  '물건':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이것에 별명을 붙인다면?','처음 접했을 때, 나는 몇 살이었는가?','처음 갖게 된 계기는?','가장 기억에 남는 것은?','이 물건이 나에게 특별한 이유는?','이 물건이 없어진다면 가장 아쉬울 것은?','이 물건을 가장 오래 사용한 기간은 약 얼마인가?'],
+  '자연':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이것에 별명을 붙인다면?','처음 본 때, 나는 몇 살이었는가?','처음 보게 된 계기는?','가장 기억에 남는 것은?','이 자연이 나에게 특별한 이유는?','이 자연에서 가장 독특한 모양은?','이 자연과 관련된 가장 기억에 남는 추억은?'],
+  '취미':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이것에 별명을 붙인다면?','처음 접했을 때, 나는 몇 살이었는가?','처음 알게 된 계기는?','이 취미를 하면서 가장 기억에 남는 것은?','이 취미가 나에게 특별한 이유는?','이 취미를 하면서 가장 뿌듯했던 순간은?','이 취미를 하면서 생긴 습관은?'],
+  '게임':['가장 인상적인 점은?','이 게임에서 가장 기억에 남는 장면은?','이 게임에서 가장 좋아하는 캐릭터는?','이 게임을 처음 플레이했을 때, 나는 몇 살이었는가?','이 게임을 시작하게 된 계기는?','이 게임에서 가장 어려웠던 것은?','이 게임에서 가장 자주 사용하는 것은?','이 게임을 하면서 가장 많이 배운 것은?','이 게임을 한 문장으로 소개한다면?','이 게임을 그만두기 어려운 이유는?'],
+  '일상':['일상에서 가장 익숙한 것은?','일상에서 가장 자주 하는 행동은?','일상에서 나도 모르게 생긴 습관은?','일상에서 없으면 불편할 것 같은 것은?','일상에서 가장 사소하지만 좋아하는 것은?','일상에서 가장 편안함을 느끼는 순간은?','일상에서 가장 자주 보는 것은?','일상에서 가장 자주 듣는 소리는?','일상에서 나를 웃게 만드는 것은?','일상에 새롭게 생겼으면 하는 것은?'],
+  '학교':['가장 눈에 띄는 것은?','가장 마음에 드는 부분은?','가장 인상적인 점은?','이곳에 별명을 붙인다면?','처음 이 학교에 왔을 때, 나는 몇 살이었는가?','처음 기억에 남은 계기는?','가장 기억에 남는 것은?','이곳이 나에게 특별한 이유는?','학교에서 가장 좋아하는 공간은?','학교에서 가장 기억에 남는 순간은?']
+};
+const STORAGE='chungchun_v6';
+const defaults={
+  records:[], answered:{}, badges:[], customCategories:{}, profileName:'나', apiBase:'/api'
+};
+let state=loadState();
+let selectedCategory=null,selectedIndex=null,selectedQuestion=null,tempImage=null,currentFilter='normal',shareCategory=null,shareSelected=new Set(),cameraStream=null,cameraFacing='environment';
+const $=id=>document.getElementById(id);
+const screens=[...document.querySelectorAll('.screen')];
+
+function loadState(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||'null');return {...structuredClone(defaults),...(raw||{}),customCategories:{...defaults.customCategories,...(raw?.customCategories||{})}};}catch{return structuredClone(defaults)}}
+function saveState(){localStorage.setItem(STORAGE,JSON.stringify(state));}
+function makeId(){return Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8)}
+function esc(s){return String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\\':'&#92;','"':'&quot;'}[c]||c))}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),1900)}
+function nav(id){const target=$(id);if(!target)return;screens.forEach(s=>s.classList.remove('active'));void target.offsetWidth;target.classList.add('active');document.querySelectorAll('[data-nav]').forEach(b=>b.classList.toggle('active',b.dataset.nav===id));if(id==='listScreen')renderFolders();if(id==='shareScreen')renderShare();}
+function categories(){return {...DEFAULT_CATEGORIES,...state.customCategories}}
+function answeredFor(cat,idx){return !!state.answered[cat+'::'+idx]}
+function nextQuestionIndex(cat){const qs=categories()[cat]||[];return qs.findIndex((_,i)=>!answeredFor(cat,i))}
+
+function renderCategories(){const grid=$('categoryGrid');grid.innerHTML='';Object.keys(categories()).forEach((cat,i)=>{const count=state.records.filter(r=>r.category===cat).length;const btn=document.createElement('button');btn.className='cat';btn.style.animationDelay=(i*.04)+'s';btn.innerHTML=`<small>${String(i+1).padStart(2,'0')} / ${String(Object.keys(categories()).length).padStart(2,'0')}</small><strong>${esc(cat)}</strong><span>${count?count+'장의 페이지':'아직 기록 없음'}</span>`;btn.onclick=()=>openCategory(cat);grid.appendChild(btn)})}
+function openCategory(cat){selectedCategory=cat;$('recordHome').style.display='none';$('questionView').style.display='block';$('categoryTitle').textContent=cat;$('recordBreadcrumb').textContent=cat;renderFilms();nav('recordScreen')}
+function renderFilms(){const stage=$('questionStage');stage.innerHTML='<div class="question-hint">필름을 드래그해서 아래 질문까지 살펴봐 · 답한 필름은 사라짐</div>';const qs=categories()[selectedCategory]||[];const remain=qs.filter((_,i)=>!answeredFor(selectedCategory,i)).length;$('questionCount').textContent='남은 질문 '+remain;let visible=0;qs.forEach((q,i)=>{if(answeredFor(selectedCategory,i))return;const p={left:4+(visible%4)*23,top:76+Math.floor(visible/4)*178,rot:(visible%2?-1:1)*(2+visible%4)};const film=document.createElement('div');film.className='film answerable';film.style.left=p.left+'%';film.style.top=p.top+'px';film.style.setProperty('--r',p.rot+'deg');film.dataset.index=i;film.style.animationDelay=(visible*.03)+'s';film.innerHTML=`<div class="film-hole"></div><div class="film-photo"></div><div class="film-question">${esc(q)}</div><div class="film-num">QUESTION ${String(i+1).padStart(2,'0')}</div>`;stage.appendChild(film);makeDraggable(film,stage);visible++});if(remain===0){const e=document.createElement('div');e.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#70695e;font-size:14px';e.textContent='이 카테고리의 질문을 모두 기록했어.';stage.appendChild(e)}}
+function makeDraggable(el,stage){let dragging=false,sx=0,sy=0,bl=0,bt=0,moved=false;const start=(x,y)=>{dragging=true;moved=false;sx=x;sy=y;bl=el.offsetLeft;bt=el.offsetTop;el.style.zIndex=60};const move=(x,y)=>{if(!dragging)return;const dx=x-sx,dy=y-sy;moved=Math.abs(dx)+Math.abs(dy)>5;el.style.left=(bl+dx)+'px';el.style.top=(bt+dy)+'px'};const end=()=>{if(!dragging)return;dragging=false;el.style.zIndex='';if(!moved)selectQuestion(Number(el.dataset.index))};el.addEventListener('pointerdown',e=>{el.setPointerCapture(e.pointerId);start(e.clientX,e.clientY)});el.addEventListener('pointermove',e=>move(e.clientX,e.clientY));el.addEventListener('pointerup',end);el.addEventListener('pointercancel',()=>dragging=false)}
+function selectQuestion(idx){selectedIndex=idx;selectedQuestion=(categories()[selectedCategory]||[])[idx];tempImage=null;currentFilter='normal';$('editorCategory').textContent=selectedCategory;$('editorQuestionText').textContent=selectedQuestion;$('selectedQuestion').textContent=selectedQuestion;$('answerInput').value='';$('answerInput').dispatchEvent(new Event('input'));$('photoInput').value='';$('fileNote').textContent='아직 사진을 넣지 않았어';$('selectedImage').removeAttribute('src');$('selectedImage').style.display='none';$('selectedImage').className='';$('selectedPolaroid').classList.remove('developing');$('puncher').classList.remove('active');$('punchHole').classList.remove('visible');$('ringEffect').classList.remove('visible');$('submitBtn').disabled=false;$('submitBtn').textContent='폴라로이드 완성하기';applyFilterButtons();nav('editorScreen')}
+function clearEditor(){tempImage=null;selectedIndex=null;selectedQuestion=null;$('photoInput').value='';$('answerInput').value='';$('selectedImage').removeAttribute('src');$('selectedImage').style.display='none';}
+
+$('answerInput').addEventListener('input',()=>{$('selectedAnswerPreview').textContent=$('answerInput').value.trim()||'한 줄의 생각이 여기에 남아.'});
+$('photoInput').addEventListener('change',e=>{const f=e.target.files?.[0];if(!f)return;if(!f.type.startsWith('image/')){toast('이미지 파일만 넣어줘');e.target.value='';return}const r=new FileReader();r.onload=()=>{tempImage=r.result;$('selectedImage').src=tempImage;$('selectedImage').style.display='block';$('fileNote').textContent=f.name;applyFilterToImage()};r.readAsDataURL(f)});
+function applyFilterButtons(){document.querySelectorAll('[data-filter]').forEach(b=>b.classList.toggle('active',b.dataset.filter===currentFilter));applyFilterToImage()}
+function applyFilterToImage(){const img=$('selectedImage');img.classList.remove('bw','warm','fade');if(currentFilter==='bw')img.classList.add('bw');if(currentFilter==='warm')img.classList.add('warm');if(currentFilter==='fade')img.classList.add('fade')}
+document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{currentFilter=b.dataset.filter;applyFilterButtons()}));
+
+$('submitBtn').addEventListener('click',async()=>{const btn=$('submitBtn');if(btn.disabled)return;const answer=$('answerInput').value.trim();if(!tempImage){toast('사진을 먼저 넣어줘');return}if(!answer){toast('한 줄의 답변을 적어줘');return}if(selectedIndex===null||answeredFor(selectedCategory,selectedIndex)){toast('이미 기록한 질문이야');renderFilms();nav('recordScreen');return}
+  btn.disabled=true;btn.textContent='인화 중...';const cat=selectedCategory,idx=selectedIndex,q=selectedQuestion;state.answered[cat+'::'+idx]=true;const finalImage=await makeFilteredImage(tempImage,currentFilter);const record={id:makeId(),category:cat,questionIndex:idx,question:q,answer,image:finalImage,createdAt:new Date().toISOString()};state.records.push(record);saveState();grantBadges();
+  $('selectedImage').src=finalImage;$('selectedImage').style.display='block';$('selectedAnswerPreview').textContent=answer;$('selectedPolaroid').classList.remove('developing');void $('selectedPolaroid').offsetWidth;$('selectedPolaroid').classList.add('developing');
+  setTimeout(()=>{$('puncher').classList.remove('active');void $('puncher').offsetWidth;$('puncher').classList.add('active');$('punchHole').classList.add('visible');$('ringEffect').classList.remove('visible');void $('ringEffect').offsetWidth;$('ringEffect').classList.add('visible')},1500);
+  setTimeout(()=>{clearEditor();renderFilms();nav('recordScreen');$('recordHome').style.display='none';$('questionView').style.display='block';btn.disabled=false;btn.textContent='폴라로이드 완성하기';toast('폴라로이드 한 장이 묶음에 들어갔어')},2550);
+});
+function makeFilteredImage(src,filter){return new Promise((resolve)=>{if(filter==='normal'){resolve(src);return}const img=new Image();img.onload=()=>{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;const x=c.getContext('2d');x.drawImage(img,0,0);const im=x.getImageData(0,0,c.width,c.height),d=im.data;for(let i=0;i<d.length;i+=4){let r=d[i],g=d[i+1],b=d[i+2];if(filter==='bw'){const v=.299*r+.587*g+.114*b;d[i]=d[i+1]=d[i+2]=v}else if(filter==='warm'){d[i]=Math.min(255,r*1.06+8);d[i+1]=Math.min(255,g*0.96+3);d[i+2]=Math.min(255,b*0.78)}else if(filter==='fade'){const n=(Math.random()-.5)*26;d[i]=Math.max(0,Math.min(255,r+n+8));d[i+1]=Math.max(0,Math.min(255,g+n+6));d[i+2]=Math.max(0,Math.min(255,b+n));}}x.putImageData(im,0,0);resolve(c.toDataURL('image/jpeg',.9))};img.onerror=()=>resolve(src);img.src=src})}
+
+function grouped(){const m={};state.records.forEach(r=>(m[r.category]??=[]).push(r));Object.values(m).forEach(a=>a.sort((x,y)=>new Date(x.createdAt)-new Date(y.createdAt)));return m}
+function renderFolders(){const grid=$('folderGrid');grid.innerHTML='';const g=grouped(),cats=Object.keys(g);const total=state.records.length;const pct=Math.min(100,(total/80)*100);$('totalProgress').style.width=pct+'%';$('totalProgressLabel').textContent=total+'장 기록';if(!cats.length){grid.innerHTML='<div class="empty" style="grid-column:1/-1">아직 기록이 없어.<br>한 장 만들면 여기에서 묶음을 볼 수 있어.</div>';return}cats.forEach(cat=>{const arr=g[cat];const folder=document.createElement('button');folder.className='folder';folder.innerHTML=`<div class="folder-cover">${arr[arr.length-1]?.image?'<img src="'+arr[arr.length-1].image+'" alt="">':''}</div><h3>${esc(cat)}</h3><p>${arr.length} / 10장 · 지금까지 모인 기록</p>`;folder.onclick=()=>openBundle(cat);grid.appendChild(folder)})}
+function openBundle(cat){const arr=grouped()[cat]||[];$('bundleTitle').textContent=cat+' 묶음';$('bundleCount').textContent=arr.length+' / 10장';const g=$('bundleGrid');g.innerHTML='';arr.forEach(r=>{const p=document.createElement('article');p.className='polaroid';p.innerHTML=`<div class="hole"></div><img src="${r.image}" alt=""><div class="pq">${esc(r.question)}</div><div class="pa">${esc(r.answer)}</div>`;g.appendChild(p)});$('bundleDownload').onclick=()=>downloadContactSheet(arr,cat);$('bundleModal').classList.add('show')}
+
+function renderShare(){const list=$('shareList');list.innerHTML='';const groups=grouped(),cats=Object.keys(groups);shareSelected=new Set();if(!cats.length){list.innerHTML='<div class="empty">아직 공유할 묶음이 없어.</div>';$('sharePreview').innerHTML='<div class="empty">먼저 기록을 하나 만들어줘.</div>';return}cats.forEach((cat,i)=>{const arr=groups[cat],b=document.createElement('div');b.className='share-item'+(i===0?' selected':'');b.innerHTML=`<div class="share-thumb"><img src="${arr[arr.length-1].image}" alt=""></div><div><b>${esc(cat)}</b><div style="font-size:10px;color:var(--muted);margin-top:4px">${arr.length}장</div></div>`;b.onclick=()=>{document.querySelectorAll('.share-item').forEach(x=>x.classList.remove('selected'));b.classList.add('selected');shareCategory=cat;shareSelected=new Set();renderSharePreview()};list.appendChild(b)});shareCategory=cats[0];renderSharePreview()}
+function renderSharePreview(){const arr=grouped()[shareCategory]||[];const p=$('sharePreview');p.innerHTML='';const sheet=document.createElement('div');sheet.className='contact-sheet';arr.forEach(r=>{const c=document.createElement('div');c.className='contact-cell';c.innerHTML=`<img src="${r.image}" alt=""><div class="t"><b>${esc(r.question)}</b><br>${esc(r.answer)}</div>`;c.onclick=()=>{shareSelected.has(r.id)?shareSelected.delete(r.id):shareSelected.add(r.id);c.style.outline=shareSelected.has(r.id)?'3px solid #6f6252':'none'};sheet.appendChild(c)});p.appendChild(sheet)}
+$('downloadAll').onclick=()=>{const arr=grouped()[shareCategory]||[];arr.length?downloadContactSheet(arr,shareCategory):toast('저장할 페이지가 없어')};$('downloadSelected').onclick=()=>{const arr=(grouped()[shareCategory]||[]).filter(r=>shareSelected.has(r.id));arr.length?downloadContactSheet(arr,shareCategory+' 선택'):toast('개별 선택할 페이지를 골라줘')};
+async function downloadContactSheet(records,name){const gap=26,pad=30,cellW=600,cellH=470,cols=2,rows=Math.ceil(records.length/cols),canvas=document.createElement('canvas');canvas.width=pad*2+cols*cellW+(cols-1)*gap;canvas.height=pad*2+rows*cellH+(rows-1)*gap;const ctx=canvas.getContext('2d');ctx.fillStyle='#f4ecdf';ctx.fillRect(0,0,canvas.width,canvas.height);for(let i=0;i<records.length;i++){const r=records[i],x=pad+(i%cols)*(cellW+gap),y=pad+Math.floor(i/cols)*(cellH+gap);ctx.fillStyle='#fff';ctx.fillRect(x,y,cellW,cellH);try{const img=await loadImage(r.image);const sc=Math.max(cellW/img.width,(cellH-100)/img.height);const w=img.width*sc,h=img.height*sc;ctx.save();ctx.beginPath();ctx.rect(x,y,cellW,cellH);ctx.clip();ctx.drawImage(img,x+(cellW-w)/2,y+(cellH-95-h)/2,w,h);ctx.restore()}catch{}ctx.fillStyle='#6e665a';ctx.font='16px serif';ctx.fillText(r.question.slice(0,42),x+18,y+cellH-66);ctx.fillStyle='#292721';ctx.font='20px serif';ctx.fillText(r.answer.slice(0,34),x+18,y+cellH-38)}const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download='청춘묶음_'+name+'.png';a.click();toast('이미지를 저장했어')}
+function loadImage(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+
+
+const BADGES=[['first','첫 페이지','첫 번째 폴라로이드를 완성하면 열림'],['bundle','첫 묶음','한 카테고리에 1장 이상 기록'],['ten','열 장의 기억','한 묶음에 10장이 모임'],['allcats','기록 수집가','8개 기본 카테고리에 모두 기록'],['maker','카테고리 개척자','직접 만든 카테고리에서 기록'],['filter','필름 디렉터','아날로그 필터를 사용해 기록'],['story','흔적 남기기','필름흔적에 내 기록이 등장']];
+function badgeUnlocked(id){if(id==='first')return state.records.length>=1;if(id==='bundle')return Object.keys(grouped()).length>=1;if(id==='ten')return Object.values(grouped()).some(a=>a.length>=10);if(id==='allcats')return Object.keys(DEFAULT_CATEGORIES).every(c=>state.records.some(r=>r.category===c));if(id==='maker')return state.records.some(r=>state.customCategories[r.category]);if(id==='filter')return state.records.some(r=>r.filter&&r.filter!=='normal');if(id==='story')return state.records.length>=1;return false}
+function grantBadges(){const unlocked=BADGES.filter(b=>badgeUnlocked(b[0])).map(b=>b[0]);state.badges=[...new Set(unlocked)];saveState();if($('badgeGrid'))renderBadges()}
+function renderBadges(){const grid=$('badgeGrid');grid.innerHTML='';BADGES.forEach(([id,title,desc])=>{const on=state.badges.includes(id)||badgeUnlocked(id);const d=document.createElement('div');d.className='badge'+(on?'':' locked');d.innerHTML=`<span class="mark">${on?'✦':'○'}</span><strong>${title}</strong><small>${desc}</small>`;grid.appendChild(d)})}
+
+async function generateQuestions(cat,opts={}){const status=$('aiStatus');if(status){status.textContent='질문을 만드는 중…'}const base=(state.apiBase||'/api').replace(/\/$/,'');try{const res=await fetch(base+'/questions',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({category:cat,count:5,existing:categories()[cat]||[],hint:opts.hint||''})});if(!res.ok)throw new Error('API '+res.status);const data=await res.json();if(!Array.isArray(data.questions)||!data.questions.length)throw new Error('empty');appendQuestions(cat,data.questions);if(status)status.textContent='Gemini가 새 질문을 더했어.';toast('새 질문을 추가했어')}catch(err){const fallback=makeFallbackQuestions(cat,5);appendQuestions(cat,fallback);if(status)status.textContent='서버 연결이 안 되어 임시 질문을 추가했어.';toast('AI 서버가 없어서 임시 질문을 넣었어')}}
+function makeFallbackQuestions(cat,n){const qs=['이 장면을 한 단어로 남긴다면?','이 기록을 다시 보게 될 사람에게 한마디 한다면?','이 순간에서 가장 오래 남을 것 같은 것은?','이 장면을 다른 계절에 옮긴다면 어울릴 계절은?','이 사진의 분위기를 소리로 바꾼다면 어떤 소리일까?','이 순간에 작은 제목을 붙인다면?','이 장면에서 가장 의외였던 것은?','이 기억을 색으로 표현한다면?'];return qs.filter(q=>!(categories()[cat]||[]).includes(q)).slice(0,n)}
+function appendQuestions(cat,qs){const uniq=[...(categories()[cat]||[]),...qs.map(String).map(q=>q.trim()).filter(Boolean)];if(state.customCategories[cat])state.customCategories[cat]=[...new Set(uniq)];else{state.customCategories[cat]=[...new Set(uniq)];}saveState();if(selectedCategory===cat)renderFilms();else renderCategories()}
+$('aiHomeBtn').onclick=()=>{const cat=Object.keys(categories())[0];generateQuestions(cat)};$('aiQuestionBtn').onclick=()=>generateQuestions(selectedCategory);$('aiModalQuestion').onclick=()=>generateQuestions(selectedCategory,{hint:$('customQuestionInput').value.trim()});
+
+$('saveCustomQuestion').onclick=()=>{const q=$('customQuestionInput').value.trim();if(!q){toast('질문을 적어줘');return}const arr=[...(state.customCategories[selectedCategory]||DEFAULT_CATEGORIES[selectedCategory]||[])];if(arr.includes(q)){toast('이미 있는 질문이야');return}state.customCategories[selectedCategory]=[...new Set([...arr,q])];saveState();$('questionModal').classList.remove('show');$('customQuestionInput').value='';renderFilms();toast('질문을 추가했어')};
+$('saveCategory').onclick=()=>{const cat=$('newCategoryInput').value.trim();if(!cat){toast('카테고리 이름을 적어줘');return}if(categories()[cat]){toast('이미 있는 카테고리야');return}state.customCategories[cat]=['가장 눈에 띄는 것은?','가장 기억에 남는 것은?','이것에 한 줄 제목을 붙인다면?','이 기록이 특별한 이유는?'];saveState();$('categoryModal').classList.remove('show');$('newCategoryInput').value='';renderCategories();toast(cat+' 카테고리를 만들었어')};
+$('addCategoryBtn').onclick=()=>$('categoryModal').classList.add('show');$('customQuestionBtn').onclick=()=>$('questionModal').classList.add('show');
+
+async function openCamera(){if(!navigator.mediaDevices?.getUserMedia){toast('이 브라우저에서는 카메라를 사용할 수 없어');return}try{cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:cameraFacing,width:{ideal:1280},height:{ideal:1280}},audio:false});$('cameraVideo').srcObject=cameraStream;$('cameraModal').classList.add('show')}catch(err){toast('카메라 권한을 허용해줘')}}
+function stopCamera(){if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}$('cameraVideo').srcObject=null}
+$('cameraBtn').onclick=openCamera;document.querySelectorAll('[data-camera-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-camera-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');const f=b.dataset.cameraFilter;$('cameraFilterLayer').style.filter=f==='bw'?'grayscale(1)':f==='warm'?'sepia(.42) saturate(.82)':'none';currentFilter=f}))
+$('switchCamera').onclick=async()=>{cameraFacing=cameraFacing==='environment'?'user':'environment';stopCamera();await openCamera()};$('shutterBtn').onclick=()=>{const v=$('cameraVideo'),c=$('cameraCanvas');if(!v.videoWidth)return;const scale=Math.min(1,1000/v.videoWidth);c.width=Math.round(v.videoWidth*scale);c.height=Math.round(v.videoHeight*scale);const x=c.getContext('2d');x.drawImage(v,0,0,c.width,c.height);const data=c.toDataURL('image/jpeg',.9);tempImage=data;$('selectedImage').src=data;$('selectedImage').style.display='block';$('fileNote').textContent='카메라로 촬영한 사진';applyFilterToImage();$('cameraModal').classList.remove('show');stopCamera();toast('사진을 찍었어')};
+
+$('backQuestions').onclick=()=>{clearEditor();renderFilms();nav('recordScreen');$('recordHome').style.display='none';$('questionView').style.display='block'};$('backToCategories').onclick=()=>{$('recordHome').style.display='block';$('questionView').style.display='none';renderCategories();nav('recordScreen')}
+
+document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>{
+  const target=b.dataset.back||'homeScreen';
+  if(target==='recordScreen'){
+    renderCategories();
+    $('recordHome').style.display='block';
+    $('questionView').style.display='none';
+  }
+  nav(target);
+}));
+document.querySelectorAll('[data-nav]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.nav==='recordScreen'){renderCategories();$('recordHome').style.display='block';$('questionView').style.display='none'}nav(b.dataset.nav)}));$('startBtn').onclick=()=>{$('recordHome').style.display='block';$('questionView').style.display='none';renderCategories();nav('recordScreen')};$('aboutBtn').onclick=()=>nav('aboutScreen');
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>{const m=$(b.dataset.close);m.classList.remove('show');if(m.id==='cameraModal')stopCamera()}));document.querySelectorAll('.modal').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){m.classList.remove('show');if(m.id==='cameraModal')stopCamera()}}));
+
+$('profileName').value=state.profileName||'나';$('apiBase').value=state.apiBase||'/api';$('saveSettings').onclick=()=>{state.profileName=$('profileName').value.trim()||'나';state.apiBase=$('apiBase').value.trim()||'/api';saveState();toast('설정을 저장했어')};$('resetData').onclick=()=>{if(confirm('기록과 칭호를 모두 초기화할까?')){state=structuredClone(defaults);saveState();renderCategories();renderFolders();renderBadges();toast('초기화했어')}};
+
+grantBadges();renderCategories();renderFolders();renderBadges();
+})();
+</script>
+</body>
+</html>
