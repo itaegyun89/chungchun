@@ -57,10 +57,9 @@ async function generateQuestions({ category, existing = [], count = 5, hint = ''
   const payload = {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
-      temperature: 1.0,
-      responseMimeType: 'application/json',
-      responseSchema: { type: 'array', items: { type: 'string' } }
-    }
+  responseMimeType: 'application/json',
+  responseSchema: { type: 'array', items: { type: 'string' } }
+}
   };
   const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
   const data = await r.json();
