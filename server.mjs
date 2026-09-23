@@ -87,9 +87,12 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, 'text/html; charset=utf-8', fs.readFileSync(INDEX));
     }
     return send(res, 404, 'text/plain; charset=utf-8', 'Not found');
-  } catch (err) {
-    return json(res, 500, { error: err.message || 'server error' });
-  }
+ } catch (err) {
+  console.error('Gemini API ERROR:', err);
+  return json(res, 500, {
+    error: err.message || 'server error'
+  });
+}
 });
 
 server.listen(PORT, HOST, () => {
