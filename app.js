@@ -27,7 +27,7 @@ function openCategory(cat){
  $("#categoryView").classList.add("hidden");$("#questionView").classList.remove("hidden");
  $("#selectedCategory").textContent=cat;
  $("#subcats").innerHTML=categories[cat].map(x=>`<button data-sub="${x}">#${x}</button>`).join("");
- $("#subcats button").forEach(b=>b.onclick=()=>toggleSub(b));
+ $("#subcats").onclick=e=>{const b=e.target.closest("button[data-sub]");if(b)toggleSub(b)};
  renderTags(); renderQuestions();
 }
 function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.includes(sub)){const custom=prompt("나를 나타내는 세부 카테고리를 입력해주세요.");if(!custom?.trim())return;sub=custom.trim();b.dataset.sub=sub;b.textContent="#"+sub}if(selectedSubs.includes(sub)){selectedSubs=selectedSubs.filter(x=>x!==sub);b.classList.remove("active")}else if(selectedSubs.length<3){selectedSubs.push(sub);b.classList.add("active")}else{toast("세부 카테고리는 최대 3개까지 선택할 수 있습니다.");return}renderTags();renderQuestions()}
@@ -35,8 +35,8 @@ function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#$
 function renderQuestions(){
  const qs=[...questions];
  const pos=[[8,8], [35,5], [63,13], [20,38], [52,42], [74,50], [5,67], [39,70]];
- $("#questionStage").innerHTML=qs.map((q,i)=>`<button class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${q}"><div class="film-photo"></div><q>${q}</q><small>${String(i+1).padStart(2,"0")} / ${selectedSubs.join(" · ")||selectedCategory}</small></button>`).join("");
- $$(".film").forEach(b=>b.onclick=()=>openEditor(b.dataset.q));
+ $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${q}"><div class="film-photo"></div><q>${q}</q><small>${String(i+1).padStart(2,"0")} / ${selectedSubs.join(" · ")||selectedCategory}</small></button>`).join("");
+ $(".film").forEach(b=>{b.onclick=e=>{if(!b.classList.contains("dragging"))openEditor(b.dataset.q)};});
 }
 function openEditor(q){
  selectedQuestion=q;photo="";filter="normal";$("#answerInput").value="";$("#previewQuestion").textContent=q;$("#previewAnswer").textContent="한 줄로 남겨봐.";$("#previewPhoto").innerHTML="<span>PHOTO</span>";$("#editor").classList.add("show");$("#editor").classList.remove("printing");
@@ -95,13 +95,13 @@ $("#resetWall").onclick=loadWall;
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
-async function generateAI(){$("#aiModal").classList.add("show");$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "));$("#aiQuestionList").innerHTML=qs.map(q=>`<button data-ai-q="${q}">${q}</button>`).join("");$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
-$("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=generateAI;
+async function generateAI(){$("#aiModal").classList.add("show");$("#aiQuestionList").innerHTML="";$("#aiStatus").textContent="추가 지시사항을 입력한 뒤 질문 만들기를 눌러주세요.";}\nasync function runAI(){$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "),$("#aiInstruction").value.trim());$("#aiQuestionList").innerHTML=qs.map(q=>`<button data-ai-q="${q}">${q}</button>`).join("");$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
+$("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=runAI;$("#directQuestionBtn").onclick=()=>{$("#directQuestionInput").value="";$("#directModal").classList.add("show")};$("#directQuestionSave").onclick=()=>{const q=$("#directQuestionInput").value.trim();if(!q){toast("질문을 입력해주세요.");return}$("#directModal").classList.remove("show");openEditor(q)};
 
 // API 호출은 이 함수 하나만 담당. 실패해도 디자인/기록 기능과 분리되어 있음.
-window.generateQuestionsFromAPI=async function(category,sub=""){
+window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
  try{
-  const data=await ChungChunAPI.generateQuestions({category,subcategory:sub,count:5,existing:questions});
+  const data=await ChungChunAPI.generateQuestions({category,subcategory:sub,count:5,existing:questions,instruction});
   if(!Array.isArray(data.questions)||!data.questions.length)throw new Error("empty questions");return data.questions;
  }catch(e){console.warn("question API:",e);toast("질문 API 연결을 확인해줘");return []}
 };
