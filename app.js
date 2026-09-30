@@ -95,7 +95,8 @@ $("#resetWall").onclick=loadWall;
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
-async function generateAI(){$("#aiModal").classList.add("show");$("#aiQuestionList").innerHTML="";$("#aiStatus").textContent="추가 지시사항을 입력한 뒤 질문 만들기를 눌러주세요.";}\nasync function runAI(){$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "),$("#aiInstruction").value.trim());$("#aiQuestionList").innerHTML=qs.map(q=>`<button data-ai-q="${q}">${q}</button>`).join("");$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
+async function generateAI(){$("#aiModal").classList.add("show");$("#aiQuestionList").innerHTML="";$("#aiStatus").textContent="추가 지시사항을 입력한 뒤 질문 만들기를 눌러주세요.";}
+async function runAI(){$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "),$("#aiInstruction").value.trim());$("#aiQuestionList").innerHTML=qs.map(q=>`<button data-ai-q="${q}">${q}</button>`).join("");$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
 $("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=runAI;$("#directQuestionBtn").onclick=()=>{$("#directQuestionInput").value="";$("#directModal").classList.add("show")};$("#directQuestionSave").onclick=()=>{const q=$("#directQuestionInput").value.trim();if(!q){toast("질문을 입력해주세요.");return}$("#directModal").classList.remove("show");openEditor(q)};
 
 // API 호출은 이 함수 하나만 담당. 실패해도 디자인/기록 기능과 분리되어 있음.
