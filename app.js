@@ -34,12 +34,43 @@ function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.inc
 function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#${x}</span>`).join("")}
 function renderQuestions(){
  const qs=[...questions];
- const pos=[[8,8], [35,5], [63,13], [20,38], [52,42], [74,50], [5,67], [39,70]];
+ const pos=[[8,8],[35,5],[63,13],[20,38],[52,42],[74,50],[5,67],[39,70]];
  $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${q}"><div class="film-photo"></div><q>${q}</q><small>${String(i+1).padStart(2,"0")} / ${selectedSubs.join(" · ")||selectedCategory}</small></button>`).join("");
- $(".film").forEach(b=>{b.onclick=e=>{if(!b.classList.contains("dragging"))openEditor(b.dataset.q)};});
+ $(".film").forEach(makeQuestionFilmDraggable);
+}
+function makeQuestionFilmDraggable(el){
+ let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0;
+ el.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  const stage=$("#questionStage").getBoundingClientRect();
+  const r=el.getBoundingClientRect();
+  startX=e.clientX;startY=e.clientY;
+  startLeft=r.left-stage.left;startTop=r.top-stage.top;
+  dragging=true;moved=false;el.setPointerCapture(e.pointerId);el.classList.add("dragging");el.style.zIndex=30;
+ });
+ el.addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  const dx=e.clientX-startX,dy=e.clientY-startY;
+  if(Math.abs(dx)+Math.abs(dy)>5)moved=true;
+  const stage=$("#questionStage").getBoundingClientRect();
+  el.style.left=Math.max(0,Math.min(stage.width-el.offsetWidth,startLeft+dx))+"px";
+  el.style.top=Math.max(0,Math.min(stage.height-el.offsetHeight,startTop+dy))+"px";
+ });
+ const end=e=>{
+  if(!dragging)return;
+  dragging=false;
+  try{el.releasePointerCapture(e.pointerId)}catch{}
+  el.classList.remove("dragging");
+  el.dataset.moved=moved?"1":"0";
+  setTimeout(()=>el.dataset.moved="0",80);
+  if(!moved)openEditor(el.dataset.q);
+ };
+ el.addEventListener("pointerup",end);
+ el.addEventListener("pointercancel",end);
 }
 function openEditor(q){
- selectedQuestion=q;photo="";filter="normal";$("#answerInput").value="";$("#previewQuestion").textContent=q;$("#previewAnswer").textContent="한 줄로 남겨봐.";$("#previewPhoto").innerHTML="<span>PHOTO</span>";$("#editor").classList.add("show");$("#editor").classList.remove("printing");
+ selectedQuestion=q;photo="";filter="normal";$("#answerInput").value="";
+ $("#printBtn").style.display="block";$("#postToWallBtn").style.display="none";$("#previewQuestion").textContent=q;$("#previewAnswer").textContent="한 줄로 남겨봐.";$("#previewPhoto").innerHTML="<span>PHOTO</span>";$("#editor").classList.add("show");$("#editor").classList.remove("printing");
  $$(".filter-row button").forEach(x=>x.classList.toggle("active",x.dataset.filter==="normal"));
 }
 function setPreviewImage(src){
@@ -52,15 +83,25 @@ $$("[data-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.filter;$$(".filte
 $$("[data-close]").forEach(b=>b.onclick=()=>$("#"+b.dataset.close).classList.remove("show"));
 $("#backCategories").onclick=()=>{$("#questionView").classList.add("hidden");$("#categoryView").classList.remove("hidden");renderCategories()};
 
+$("#postToWallBtn").onclick=()=>{
+ const latest=records.at(-1); if(!latest)return;
+ postRecordToWall(latest.id,$("#postToWallBtn"));
+};
 $("#printBtn").onclick=async()=>{
  const answer=$("#answerInput").value.trim();
  if(!photo){toast("사진을 먼저 선택해주세요.");return}
  if(!answer){toast("한 줄 답변을 남겨주세요.");return}
  const btn=$("#printBtn");btn.disabled=true;btn.textContent="인화 중...";
- const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString()};
- records.push(rec);save();$("#editor").classList.add("printing");
- fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec,x:40,y:40,rotation:-2})}).catch(()=>{});
- setTimeout(()=>{btn.disabled=false;btn.textContent="폴라로이드 완성하기";$("#editor").classList.remove("show","printing");renderCategories();renderBundle();loadWall();toast("기록이 묶음에 추가되었습니다.")},1900);
+ const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString(),posted:false};
+ records.push(rec);save();
+ $("#editor").classList.add("printing");
+ setTimeout(()=>{
+  btn.disabled=false;btn.textContent="완성된 필름";
+  $("#editor").classList.remove("printing");
+  $("#printBtn").style.display="none";
+  $("#postToWallBtn").style.display="block";
+  renderCategories();renderBundle();toast("폴라로이드가 완성되었습니다.");
+ },1700);
 };
 
 function renderBundle(){
@@ -72,8 +113,25 @@ function renderBundle(){
 }
 function openBundle(cat){
  const arr=records.filter(r=>r.category===cat);
- $("#editor").classList.add("show");
- $("#polaroidPreview").innerHTML=arr.length?`<div class="preview-photo"><img src="${arr.at(-1).image}" alt=""></div><div class="preview-copy"><small>${arr.at(-1).question}</small><strong>${arr.at(-1).answer}</strong></div>`:"";
+ $("#bundleModalTitle").textContent=cat;
+ $("#bundleModalCount").textContent=arr.length+" / 10장";
+ $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
+   <div class="bundle-photo"><img src="${r.image}" alt=""></div>
+   <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
+   <button class="post-one" data-id="${r.id}">${r.posted?"게시됨":"게시판에 올리기"}</button>
+ </article>`).join("");
+ $("#bundleModal").classList.add("show");
+ $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
+}
+async function postRecordToWall(id,button){
+ const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
+ if(rec.posted){toast("이미 게시된 필름이야.");return}
+ try{
+  const r=await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec,x:40,y:40,rotation:-2})});
+  if(!r.ok)throw new Error("wall");
+  rec.posted=true;save();button.textContent="게시됨";toast("게시판에 올렸어.");
+  loadWall();
+ }catch{toast("게시판 연결에 실패했어.");}
 }
 async function loadWall(){try{const r=await fetch("/api/wall");const d=await r.json();window.sharedWall=Array.isArray(d.items)?d.items:[];renderWall()}catch{window.sharedWall=[];renderWall()}}
 function renderWall(){
@@ -81,7 +139,7 @@ function renderWall(){
   {image:"",answer:"오늘 하늘이 유난히 맑았다."},{image:"",answer:"자주 쓰는 물건 하나."},
   {image:"",answer:"기억해두고 싶은 장소."},{image:"",answer:"좋아하는 게임의 한 장면."}
  ];
- const arr=(window.sharedWall?.length?window.sharedWall:records.slice(-8));
+ const arr=(window.sharedWall||[]);
  $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-i="${i}" style="left:${8+(i*17)%78}%;top:${8+(i*23)%76}%;transform:rotate(${[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
  $$(".wall-film").forEach(makeDraggable);
 }
