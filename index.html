@@ -28,7 +28,7 @@
       <button class="black-btn" data-page="record">기록 시작</button>
     </div>
     <div class="home-object" aria-hidden="true">
-      <div class="sample-photo"></div><div class="sample-card"></div>
+      <div class="sample-card"><div class="sample-photo"></div></div>
       <span class="obj-num">01</span>
     </div>
   </div>
@@ -41,7 +41,7 @@
   </div>
   <div id="questionView" class="hidden">
     <div class="sub-head"><button class="back-btn" id="backCategories">← 카테고리</button><div id="selectedCategory"></div></div>
-    <div class="subcat-row"><div class="subcats" id="subcats"></div><button id="aiQuestionsBtn" class="outline-btn">AI 질문 만들기</button></div><div id="selectedTags" class="selected-tags"></div>
+    <div class="subcat-row"><div class="subcats" id="subcats"></div><div class="question-create-buttons"><button id="directQuestionBtn" class="outline-btn">직접 질문 제작</button><button id="aiQuestionsBtn" class="outline-btn">AI 질문 제작</button></div></div><div id="selectedTags" class="selected-tags"></div>
     <div class="question-stage" id="questionStage"></div>
   </div>
 </section>
@@ -91,7 +91,7 @@
     </div>
   </div>
 </div>
-<div id="aiModal" class="modal"><div class="modal-card ai-card"><button class="close" data-close="aiModal">×</button><span class="tiny">AI QUESTION</span><h3>질문 만들기</h3><p id="aiStatus">선택하신 카테고리를 바탕으로 질문을 만들어보세요.</p><div id="aiQuestionList" class="ai-list"></div><button id="aiGenerateAgain" class="black-btn wide">질문 다시 만들기</button></div></div>
+<div id="aiModal" class="modal"><div class="modal-card ai-card"><button class="close" data-close="aiModal">×</button><span class="tiny">AI QUESTION</span><h3>AI 질문 제작</h3><p id="aiStatus">선택하신 카테고리와 세부 카테고리를 바탕으로 질문을 만들어보세요.</p><label class="ai-instruction-label">추가 지시사항<textarea id="aiInstruction" placeholder="예: 너무 평범하지 않고 답하기 재미있는 질문으로 만들어주세요."></textarea></label><div id="aiQuestionList" class="ai-list"></div><button id="aiGenerateAgain" class="black-btn wide">질문 만들기</button></div></div><div id="directModal" class="modal"><div class="modal-card ai-card"><button class="close" data-close="directModal">×</button><span class="tiny">CUSTOM QUESTION</span><h3>직접 질문 제작</h3><p>사용할 질문을 직접 작성해주세요.</p><textarea id="directQuestionInput" class="direct-question-input" maxlength="100" placeholder="질문을 입력해주세요."></textarea><button id="directQuestionSave" class="black-btn wide">이 질문 사용하기</button></div></div>
 <div id="toast"></div>
 <script src="/api.js"></script>
 <script src="/app.js"></script>
