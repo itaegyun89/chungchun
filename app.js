@@ -59,6 +59,7 @@ $("#printBtn").onclick=async()=>{
  const btn=$("#printBtn");btn.disabled=true;btn.textContent="인화 중...";
  const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString()};
  records.push(rec);save();$("#editor").classList.add("printing");
+ fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec,x:40,y:40,rotation:-2})}).catch(()=>{});
  setTimeout(()=>{btn.disabled=false;btn.textContent="폴라로이드 완성하기";$("#editor").classList.remove("show","printing");renderCategories();renderBundle();loadWall();toast("기록이 묶음에 추가되었습니다.")},1900);
 };
 
@@ -74,7 +75,7 @@ function openBundle(cat){
  $("#editor").classList.add("show");
  $("#polaroidPreview").innerHTML=arr.length?`<div class="preview-photo"><img src="${arr.at(-1).image}" alt=""></div><div class="preview-copy"><small>${arr.at(-1).question}</small><strong>${arr.at(-1).answer}</strong></div>`:"";
 }
-async function loadWall(){try{const r=await fetch("/api/wall");const d=await r.json();window.sharedWall=Array.isArray(d.items)?d.items:[];renderWall()}catch{renderWall()}}
+async function loadWall(){try{const r=await fetch("/api/wall");const d=await r.json();window.sharedWall=Array.isArray(d.items)?d.items:[];renderWall()}catch{window.sharedWall=[];renderWall()}}
 function renderWall(){
  const demo=[
   {image:"",answer:"오늘 하늘이 유난히 맑았다."},{image:"",answer:"자주 쓰는 물건 하나."},
@@ -101,7 +102,7 @@ $("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=generateAI
 window.generateQuestionsFromAPI=async function(category,sub=""){
  try{
   const data=await ChungChunAPI.generateQuestions({category,subcategory:sub,count:5,existing:questions});
-  return Array.isArray(data.questions)?data.questions:[];
+  if(!Array.isArray(data.questions)||!data.questions.length)throw new Error("empty questions");return data.questions;
  }catch(e){console.warn("question API:",e);toast("질문 API 연결을 확인해줘");return []}
 };
 
