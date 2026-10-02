@@ -35,7 +35,9 @@ http.createServer(async(req,res)=>{try{
  if(u.pathname==="/api/wall"&&req.method==="DELETE"){
  if(!pool)return json(res,503,{error:"Wall database is not configured"});
  const body=await readBody(req);
- if(body.adminKey && process.env.ADMIN_KEY && body.adminKey===process.env.ADMIN_KEY){
+ const adminKey=String(body.adminKey||"").trim();
+ const configuredAdminKey=String(process.env.ADMIN_KEY||"").trim();
+ if(adminKey && configuredAdminKey && adminKey===configuredAdminKey){
   if(body.all){await pool.query("DELETE FROM wall_items");return json(res,200,{ok:true,all:true})}
   if(body.id){const result=await pool.query("DELETE FROM wall_items WHERE id=$1",[String(body.id)]);return json(res,result.rowCount?200:404,{ok:!!result.rowCount})}
   return json(res,400,{error:"id or all required"});
