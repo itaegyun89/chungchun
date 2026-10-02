@@ -4,7 +4,7 @@
  */
 window.ChungChunAPI = (() => {
   const saved = localStorage.getItem("chungchun_api_base");
-  const config = { base: saved || "/api" };
+  const config = { base: saved || "https://ceongcunmuggeum.onrender.com/api" };
 
   function setBase(value){
     config.base = (value || "/api").trim().replace(/\/$/,"") || "/api";
