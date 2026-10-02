@@ -120,7 +120,7 @@ function keysEqual(a,b){
 
 const server=http.createServer(async(req,res)=>{
  try{
-  const u=new URL(req.url,\`http://\${req.headers.host||"localhost"}\`);
+  const u=new URL(req.url,`http://${req.headers.host||"localhost"}`);
 
   if(req.method==="OPTIONS")return send(res,204,"text/plain; charset=utf-8","");
 
