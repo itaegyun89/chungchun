@@ -137,7 +137,7 @@ function openBundle(cat){
  $("#bundleModalTitle").textContent=cat;
  $("#bundleModalCount").textContent=arr.length+" / 10장";
  $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
-   <div class="bundle-photo"><img src="${r.image}" alt=""></div>
+   <div class="bundle-photo"><img class="filter-${r.filter||"normal"}" src="${r.image}" alt=""></div>
    <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
    <button class="post-one" data-id="${r.id}">${r.posted?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
