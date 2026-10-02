@@ -15,7 +15,7 @@ async function writeWall(item){if(!pool)throw Error("DATABASE_URL is not configu
 const MIME={".html":"text/html; charset=utf-8",".css":"text/css; charset=utf-8",".js":"text/javascript; charset=utf-8"};
 function send(res,status,type,body){res.writeHead(status,{"Content-Type":type,"Cache-Control":"no-cache","Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"});res.end(body)}
 function json(res,status,obj){send(res,status,"application/json; charset=utf-8",JSON.stringify(obj))}
-async function readBody(req){let s="";for await(const c of req){s+=c;if(s.length>200000)throw Error("request too large")}return JSON.parse(s||"{}")}
+async function readBody(req){let s="";for await(const c of req){s+=c;if(s.length>15_000_000)throw Error("request too large")}return JSON.parse(s||"{}")}
 http.createServer(async(req,res)=>{try{
  const u=new URL(req.url,`http://${req.headers.host||"localhost"}`);
  if(req.method==="OPTIONS")return send(res,204,"text/plain; charset=utf-8","");
