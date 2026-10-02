@@ -178,12 +178,16 @@ async function postRecordToWall(id,button){
 }
 async function loadWall(preserveOnError=false){try{const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall");const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||("wall get "+r.status));if(!Array.isArray(d.items))throw new Error("invalid wall response");window.sharedWall=d.items;renderWall()}catch(e){console.warn("wall sync failed:",e);if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);}}
 function renderWall(){
- const demo=[
-  {image:"",answer:"오늘 하늘이 유난히 맑았다."},{image:"",answer:"자주 쓰는 물건 하나."},
-  {image:"",answer:"기억해두고 싶은 장소."},{image:"",answer:"좋아하는 게임의 한 장면."}
- ];
  const arr=(window.sharedWall||[]);
- $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-id="${r.id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
+ $("#wallBoard").innerHTML=arr.map((r,i)=>{
+  const image=safeImageSrc(r.image);
+  const id=escapeHtml(r.id);
+  return `<article class="wall-film" data-id="${id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)">
+    <span class="nail"></span><span class="hammer"></span>
+    ${image?`<img src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
+    <p>${escapeHtml(r.answer)}</p>
+  </article>`;
+ }).join("");
  $(".wall-film").forEach(el=>{makeDraggable(el);el.ondblclick=()=>openWallDetail(el.dataset.id)});
 }
 function makeDraggable(el){
