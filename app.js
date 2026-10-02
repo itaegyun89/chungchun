@@ -148,7 +148,7 @@ async function postRecordToWall(id,button){
  const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
  if(rec.posted){toast("이미 게시된 필름이야.");return}
  try{
-  const r=await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec})});
+  const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("wall "+r.status));
   rec.posted=true;save();button.textContent="게시됨";
@@ -163,7 +163,7 @@ async function postRecordToWall(id,button){
   loadWall(true);
  }catch(e){toast("게시판 연결에 실패했어: "+e.message);}
 }
-async function loadWall(preserveOnError=false){try{const r=await fetch("/api/wall");const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||("wall get "+r.status));if(!Array.isArray(d.items))throw new Error("invalid wall response");window.sharedWall=d.items;renderWall()}catch(e){console.warn("wall sync failed:",e);if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);}}
+async function loadWall(preserveOnError=false){try{const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall");const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||("wall get "+r.status));if(!Array.isArray(d.items))throw new Error("invalid wall response");window.sharedWall=d.items;renderWall()}catch(e){console.warn("wall sync failed:",e);if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);}}
 function renderWall(){
  const demo=[
   {image:"",answer:"오늘 하늘이 유난히 맑았다."},{image:"",answer:"자주 쓰는 물건 하나."},
@@ -177,7 +177,7 @@ function makeDraggable(el){
  let sx=0,sy=0,ox=0,oy=0,drag=false;
  el.onpointerdown=e=>{drag=true;el.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;const r=el.getBoundingClientRect(),b=$("#wallBoard").getBoundingClientRect();ox=r.left-b.left;oy=r.top-b.top;el.style.zIndex=30};
  el.onpointermove=e=>{if(!drag)return;const b=$("#wallBoard").getBoundingClientRect();el.style.left=Math.max(0,Math.min(b.width-el.offsetWidth,ox+e.clientX-sx))+"px";el.style.top=Math.max(0,Math.min(b.height-el.offsetHeight,oy+e.clientY-sy))+"px"};
- el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));if(item){const board=$("#wallBoard");item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
+ el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));if(item){const board=$("#wallBoard");item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;try{await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
 }
 async function openWallDetail(id){
  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
@@ -193,7 +193,7 @@ async function openWallDetail(id){
 $("#wallDeleteBtn").onclick=async()=>{
  if(!selectedWallItem||String(selectedWallItem.ownerToken||"")!==ownerToken)return;
  try{
-  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
+  const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
   if(!r.ok)throw new Error("delete");
   window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(selectedWallItem.id));
   const rec=records.find(x=>String(x.id)===String(selectedWallItem.id));if(rec){rec.posted=false;save();}
@@ -206,7 +206,7 @@ async function developerDeleteAll(){
  const key=developerAdminKey||prompt("개발자 관리자 키를 입력해주세요.");
  if(!key)return;
  try{
-  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
+  const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
   developerAdminKey=key;sessionStorage.setItem("chungchun_admin_key",key);
