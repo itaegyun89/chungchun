@@ -183,6 +183,6 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
  }catch(e){console.warn("question API:",e);toast("질문 API 연결을 확인해줘");return []}
 };
 
-renderCategories();renderBundle();renderWall();
+renderCategories();renderBundle();renderWall();loadWall();
 $$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
 })();
