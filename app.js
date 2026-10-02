@@ -148,11 +148,11 @@ async function postRecordToWall(id,button){
  const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
  if(rec.posted){toast("이미 게시된 필름이야.");return}
  try{
-  const r=await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec,x:40,y:40,rotation:-2})});
+  const r=await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec})});
   if(!r.ok)throw new Error("wall");
   rec.posted=true;save();button.textContent="게시됨";
   // POST 성공 직후에는 GET 전체 재조회에 의존하지 않고 방금 올린 필름을 즉시 게시판에 반영한다.
-  const postedItem={...rec,x:40,y:40,rotation:-2};
+  const postedItem={...rec};
   window.sharedWall=Array.isArray(window.sharedWall)?window.sharedWall:[];
   const idx=window.sharedWall.findIndex(x=>String(x.id)===String(rec.id));
   if(idx>=0)window.sharedWall[idx]=postedItem;else window.sharedWall.unshift(postedItem);
@@ -169,14 +169,14 @@ function renderWall(){
   {image:"",answer:"기억해두고 싶은 장소."},{image:"",answer:"좋아하는 게임의 한 장면."}
  ];
  const arr=(window.sharedWall||[]);
- $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-id="${r.id}" style="left:${8+(i*17)%78}%;top:${8+(i*23)%76}%;transform:rotate(${[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
+ $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-id="${r.id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
  $(".wall-film").forEach(el=>{makeDraggable(el);el.ondblclick=()=>openWallDetail(el.dataset.id)});
 }
 function makeDraggable(el){
  let sx=0,sy=0,ox=0,oy=0,drag=false;
  el.onpointerdown=e=>{drag=true;el.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;const r=el.getBoundingClientRect(),b=$("#wallBoard").getBoundingClientRect();ox=r.left-b.left;oy=r.top-b.top;el.style.zIndex=30};
  el.onpointermove=e=>{if(!drag)return;const b=$("#wallBoard").getBoundingClientRect();el.style.left=Math.max(0,Math.min(b.width-el.offsetWidth,ox+e.clientX-sx))+"px";el.style.top=Math.max(0,Math.min(b.height-el.offsetHeight,oy+e.clientY-sy))+"px"};
- el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));if(item){item.x=el.offsetLeft;item.y=el.offsetTop;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
+ el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));if(item){const board=$("#wallBoard");item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
 }
 async function openWallDetail(id){
  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
@@ -200,6 +200,18 @@ $("#wallDeleteBtn").onclick=async()=>{
  }catch{toast("삭제에 실패했어.");}
 };
 $("#resetWall").onclick=loadWall;
+let developerAdminKey=sessionStorage.getItem("chungchun_admin_key")||"";
+async function developerDeleteAll(){
+ const key=developerAdminKey||prompt("개발자 관리자 키를 입력해주세요.");
+ if(!key)return;
+ try{
+  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:key})});
+  if(!r.ok)throw new Error();
+  developerAdminKey=key;sessionStorage.setItem("chungchun_admin_key",key);
+  window.sharedWall=[];renderWall();toast("벽의 모든 게시물을 삭제했어.");
+ }catch{sessionStorage.removeItem("chungchun_admin_key");developerAdminKey="";toast("개발자 인증에 실패했어.");}
+}
+$("#developerWallBtn").onclick=developerDeleteAll;
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
