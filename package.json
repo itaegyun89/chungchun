@@ -1,13 +1,17 @@
 {
   "name": "chungchunmukem",
   "version": "1.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.mjs"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
-    "@google/genai": "latest",
-    "dotenv": "latest",
-    "pg": "latest"
+    "@google/genai": "2.24.0",
+    "dotenv": "18.0.5",
+    "pg": "8.23.1"
   }
 }
