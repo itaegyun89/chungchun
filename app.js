@@ -149,7 +149,8 @@ async function postRecordToWall(id,button){
  if(rec.posted){toast("이미 게시된 필름이야.");return}
  try{
   const r=await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec})});
-  if(!r.ok)throw new Error("wall");
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||("wall "+r.status));
   rec.posted=true;save();button.textContent="게시됨";
   // POST 성공 직후에는 GET 전체 재조회에 의존하지 않고 방금 올린 필름을 즉시 게시판에 반영한다.
   const postedItem={...rec};
@@ -160,9 +161,9 @@ async function postRecordToWall(id,button){
   toast("게시판에 올렸어.");
   // 최신 DB 상태는 백그라운드에서 동기화한다. 실패해도 방금 올린 필름은 화면에서 유지한다.
   loadWall(true);
- }catch{toast("게시판 연결에 실패했어.");}
+ }catch(e){toast("게시판 연결에 실패했어: "+e.message);}
 }
-async function loadWall(preserveOnError=false){try{const r=await fetch("/api/wall");if(!r.ok)throw new Error("wall get");const d=await r.json();window.sharedWall=Array.isArray(d.items)?d.items:[];renderWall()}catch{if(!preserveOnError){window.sharedWall=Array.isArray(window.sharedWall)?window.sharedWall:[];renderWall()}else{console.warn("wall sync failed")}}}
+async function loadWall(preserveOnError=false){try{const r=await fetch("/api/wall");const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||("wall get "+r.status));if(!Array.isArray(d.items))throw new Error("invalid wall response");window.sharedWall=d.items;renderWall()}catch(e){console.warn("wall sync failed:",e);if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);}}
 function renderWall(){
  const demo=[
   {image:"",answer:"오늘 하늘이 유난히 맑았다."},{image:"",answer:"자주 쓰는 물건 하나."},
