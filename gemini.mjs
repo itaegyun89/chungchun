@@ -34,6 +34,7 @@ export async function generateQuestions({
     "서로 의미가 겹치지 않고 사진 한 장과 연결되며 한 문장으로 답할 수 있게 만든다.",
     "기존 질문과 최대한 겹치지 않는다.",
     "설명이나 번호는 넣지 않는다."
+    "카테고리와 관련이 없는 내용은 질문을 만들수 없다는 내용을 전달한다."
   ].filter(Boolean).join("\n");
 
   const url =
