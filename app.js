@@ -39,30 +39,38 @@ function renderQuestions(){
  $(".film").forEach(makeQuestionFilmDraggable);
 }
 function makeQuestionFilmDraggable(el){
- let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0;
+ let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0,pointerId=null;
  el.addEventListener("pointerdown",e=>{
   if(e.button!==undefined&&e.button!==0)return;
-  const stage=$("#questionStage").getBoundingClientRect();
-  const r=el.getBoundingClientRect();
+  e.preventDefault();
+  e.stopPropagation();
+  const stage=$("#questionStage");
   startX=e.clientX;startY=e.clientY;
-  startLeft=r.left-stage.left;startTop=r.top-stage.top;
-  dragging=true;moved=false;el.setPointerCapture(e.pointerId);el.classList.add("dragging");el.style.zIndex=30;
+  startLeft=el.offsetLeft;startTop=el.offsetTop;
+  dragging=true;moved=false;pointerId=e.pointerId;
+  el.setPointerCapture(e.pointerId);
+  el.classList.add("dragging");
+  el.style.zIndex=30;
+  el.style.transition="none";
+  el.style.left=startLeft+"px";
+  el.style.top=startTop+"px";
  });
  el.addEventListener("pointermove",e=>{
-  if(!dragging)return;
-  const dx=e.clientX-startX,dy=e.clientY-startY;
-  if(Math.abs(dx)+Math.abs(dy)>5)moved=true;
+  if(!dragging||e.pointerId!==pointerId)return;
+  e.preventDefault();
   const stage=$("#questionStage").getBoundingClientRect();
+  const dx=e.clientX-startX,dy=e.clientY-startY;
+  if(Math.hypot(dx,dy)>5)moved=true;
   el.style.left=Math.max(0,Math.min(stage.width-el.offsetWidth,startLeft+dx))+"px";
   el.style.top=Math.max(0,Math.min(stage.height-el.offsetHeight,startTop+dy))+"px";
  });
  const end=e=>{
-  if(!dragging)return;
+  if(!dragging||e.pointerId!==pointerId)return;
+  e.preventDefault();
   dragging=false;
   try{el.releasePointerCapture(e.pointerId)}catch{}
   el.classList.remove("dragging");
-  el.dataset.moved=moved?"1":"0";
-  setTimeout(()=>el.dataset.moved="0",80);
+  el.style.transition="";
   if(!moved)openEditor(el.dataset.q);
  };
  el.addEventListener("pointerup",end);
