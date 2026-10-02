@@ -206,11 +206,12 @@ async function developerDeleteAll(){
  const key=developerAdminKey||prompt("개발자 관리자 키를 입력해주세요.");
  if(!key)return;
  try{
-  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:key})});
-  if(!r.ok)throw new Error();
+  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
   developerAdminKey=key;sessionStorage.setItem("chungchun_admin_key",key);
   window.sharedWall=[];renderWall();toast("벽의 모든 게시물을 삭제했어.");
- }catch{sessionStorage.removeItem("chungchun_admin_key");developerAdminKey="";toast("개발자 인증에 실패했어.");}
+ }catch(e){sessionStorage.removeItem("chungchun_admin_key");developerAdminKey="";toast("개발자 작업 실패: "+e.message);}
 }
 $("#developerWallBtn").onclick=developerDeleteAll;
 
