@@ -36,7 +36,7 @@ function renderQuestions(){
  const qs=[...questions];
  const pos=[[8,8],[35,5],[63,13],[20,38],[52,42],[74,50],[5,67],[39,70]];
  $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${q}"><div class="film-photo"></div><q>${q}</q><small>${String(i+1).padStart(2,"0")} / ${selectedSubs.join(" · ")||selectedCategory}</small></button>`).join("");
- $(".film").forEach(makeQuestionFilmDraggable);
+ $$(".film").forEach(makeQuestionFilmDraggable);
 }
 function makeQuestionFilmDraggable(el){
  let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0,pointerId=null;
