@@ -10,13 +10,26 @@ const questions=[
 "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
 "처음 접하게 된 계기는?","가장 기억에 남는 것은?","이것이 나에게 특별한 이유는?"
 ];
-let records=JSON.parse(localStorage.getItem("chungchun_records")||"[]");
+let records=[];
+try{
+  const parsed=JSON.parse(localStorage.getItem("chungchun_records")||"[]");
+  records=Array.isArray(parsed)?parsed:[];
+}catch{
+  localStorage.removeItem("chungchun_records");
+}
 const ownerToken=localStorage.getItem("chungchun_owner_token")||crypto.randomUUID();
 localStorage.setItem("chungchun_owner_token",ownerToken);
 let selectedWallItem=null;
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
 function save(){localStorage.setItem("chungchun_records",JSON.stringify(records))}
+function escapeHtml(value){
+  return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+function safeImageSrc(value){
+  const s=String(value||"");
+  return /^data:image\/(?:jpeg|jpg|png|webp|gif);base64,/i.test(s)?s:"";
+}
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800)}
 function page(id){$$(".page").forEach(x=>x.classList.toggle("active",x.id===id));window.scrollTo(0,0)}
 $$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
@@ -185,13 +198,13 @@ async function openWallDetail(id){
  $("#wallDetailPhoto").innerHTML=item.image?'<img src="'+item.image+'" alt="">':'<div class="wall-detail-placeholder"></div>';
  $("#wallDetailQuestion").textContent=item.question||"";
  $("#wallDetailAnswer").textContent=item.answer||"";
- const mine=String(item.ownerToken||"")===ownerToken;
+ const mine=String(records.find(r=>String(r.id)===String(item.id))?.ownerToken||"")===ownerToken;
  $("#wallDeleteBtn").style.display=mine?"inline-flex":"none";
  $("#wallOwnerHint").textContent=mine?"내가 올린 필름":"게시자가 아닌 필름";
  $("#wallDetailModal").classList.add("show");
 }
 $("#wallDeleteBtn").onclick=async()=>{
- if(!selectedWallItem||String(selectedWallItem.ownerToken||"")!==ownerToken)return;
+ if(!selectedWallItem||String(records.find(r=>String(r.id)===String(selectedWallItem.id))?.ownerToken||"")!==ownerToken)return;
  try{
   const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
   if(!r.ok)throw new Error("delete");
@@ -209,16 +222,22 @@ async function developerDeleteAll(){
   const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
-  developerAdminKey=key;sessionStorage.setItem("chungchun_admin_key",key);
+  developerAdminKey=String(key).trim();sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
   window.sharedWall=[];renderWall();toast("벽의 모든 게시물을 삭제했어.");
- }catch(e){sessionStorage.removeItem("chungchun_admin_key");developerAdminKey="";toast("개발자 작업 실패: "+e.message);}
+  }catch(e){
+   if(/invalid admin key|admin key is not configured/i.test(e.message)){
+     sessionStorage.removeItem("chungchun_admin_key");
+     developerAdminKey="";
+   }
+   toast("개발자 작업 실패: "+e.message);
+ }
 }
 $("#developerWallBtn").onclick=developerDeleteAll;
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
 async function generateAI(){$("#aiModal").classList.add("show");$("#aiQuestionList").innerHTML="";$("#aiStatus").textContent="추가 지시사항을 입력한 뒤 질문 만들기를 눌러주세요.";}
-async function runAI(){$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "),$("#aiInstruction").value.trim());$("#aiQuestionList").innerHTML="";qs.forEach(q=>{const b=document.createElement("button");b.type="button";b.textContent=q;b.dataset.aiQ=q;$("#aiQuestionList").appendChild(b)});$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("#aiQuestionList").querySelectorAll("button[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
+async function runAI(){$("#aiStatus").textContent="질문을 만들고 있습니다...";try{const qs=await window.generateQuestionsFromAPI(selectedCategory,selectedSubs.join(", "),$("#aiInstruction").value.trim());$("#aiQuestionList").innerHTML="";qs.forEach(q=>{const b=document.createElement("button");b.type="button";b.textContent=q;b.dataset.aiQ=q;$("#aiQuestionList").appendChild(b)});if(!qs.length)throw new Error("empty questions");$("#aiStatus").textContent="사용할 질문을 선택해주세요.";$("#aiQuestionList").querySelectorAll("button[data-ai-q]").forEach(b=>b.onclick=()=>{$("#aiModal").classList.remove("show");openEditor(b.dataset.aiQ)})}catch{$("#aiStatus").textContent="질문을 만들지 못했습니다. API 연결을 확인해주세요."}}
 $("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=runAI;$("#directQuestionBtn").onclick=()=>{$("#directQuestionInput").value="";$("#directModal").classList.add("show")};$("#directQuestionSave").onclick=()=>{const q=$("#directQuestionInput").value.trim();if(!q){toast("질문을 입력해주세요.");return}$("#directModal").classList.remove("show");openEditor(q)};
 
 // API 호출은 이 함수 하나만 담당. 실패해도 디자인/기록 기능과 분리되어 있음.
