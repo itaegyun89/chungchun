@@ -81,12 +81,22 @@ function openEditor(q){
  $("#printBtn").style.display="block";$("#postToWallBtn").style.display="none";$("#previewQuestion").textContent=q;$("#previewAnswer").textContent="한 줄로 남겨봐.";$("#previewPhoto").innerHTML="<span>PHOTO</span>";$("#editor").classList.add("show");$("#editor").classList.remove("printing");
  $$(".filter-row button").forEach(x=>x.classList.toggle("active",x.dataset.filter==="normal"));
 }
+async function compressImage(file){
+ const MAX=1600;
+ const src=await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.onerror=reject;r.readAsDataURL(file)});
+ const img=await new Promise((resolve,reject)=>{const i=new Image();i.onload=()=>resolve(i);i.onerror=reject;i.src=src});
+ const scale=Math.min(1,MAX/Math.max(img.naturalWidth,img.naturalHeight));
+ const w=Math.max(1,Math.round(img.naturalWidth*scale)),h=Math.max(1,Math.round(img.naturalHeight*scale));
+ const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;
+ canvas.getContext("2d").drawImage(img,0,0,w,h);
+ return canvas.toDataURL("image/jpeg",0.82);
+}
 function setPreviewImage(src){
  const cls=filter==="bw"?"filter-bw":filter==="warm"?"filter-warm":"";
  $("#previewPhoto").innerHTML=`<img class="${cls}" src="${src}" alt="">`;
 }
 $("#answerInput").oninput=e=>$("#previewAnswer").textContent=e.target.value||"한 줄로 답변을 남겨보세요.";
-$("#photoInput").onchange=e=>{const f=e.target.files?.[0];if(!f)return;const r=new FileReader();r.onload=()=>{photo=r.result;setPreviewImage(photo)};r.readAsDataURL(f)};
+$("#photoInput").onchange=async e=>{const f=e.target.files?.[0];if(!f)return;try{photo=await compressImage(f);setPreviewImage(photo)}catch{toast("사진을 불러오지 못했습니다.")}};
 $$("[data-filter]").forEach(b=>b.onclick=()=>{filter=b.dataset.filter;$$(".filter-row button").forEach(x=>x.classList.toggle("active",x===b));if(photo)setPreviewImage(photo)});
 $$("[data-close]").forEach(b=>b.onclick=()=>$("#"+b.dataset.close).classList.remove("show"));
 $("#backCategories").onclick=()=>{$("#questionView").classList.add("hidden");$("#categoryView").classList.remove("hidden");renderCategories()};
