@@ -11,6 +11,9 @@ const questions=[
 "처음 접하게 된 계기는?","가장 기억에 남는 것은?","이것이 나에게 특별한 이유는?"
 ];
 let records=JSON.parse(localStorage.getItem("chungchun_records")||"[]");
+const ownerToken=localStorage.getItem("chungchun_owner_token")||crypto.randomUUID();
+localStorage.setItem("chungchun_owner_token",ownerToken);
+let selectedWallItem=null;
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
 function save(){localStorage.setItem("chungchun_records",JSON.stringify(records))}
@@ -110,7 +113,7 @@ $("#printBtn").onclick=async()=>{
  if(!photo){toast("사진을 먼저 선택해주세요.");return}
  if(!answer){toast("한 줄 답변을 남겨주세요.");return}
  const btn=$("#printBtn");btn.disabled=true;btn.textContent="인화 중...";
- const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString(),posted:false};
+ const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString(),posted:false,ownerToken};
  records.push(rec);save();
  $("#editor").classList.add("printing");
  setTimeout(()=>{
@@ -158,15 +161,36 @@ function renderWall(){
   {image:"",answer:"기억해두고 싶은 장소."},{image:"",answer:"좋아하는 게임의 한 장면."}
  ];
  const arr=(window.sharedWall||[]);
- $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-i="${i}" style="left:${8+(i*17)%78}%;top:${8+(i*23)%76}%;transform:rotate(${[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
- $$(".wall-film").forEach(makeDraggable);
+ $("#wallBoard").innerHTML=arr.map((r,i)=>`<article class="wall-film" data-id="${r.id}" style="left:${8+(i*17)%78}%;top:${8+(i*23)%76}%;transform:rotate(${[-3,2,-2,3,-1,2][i%6]}deg)"><span class="nail"></span><span class="hammer"></span>${r.image?`<img src="${r.image}" alt="">`:"<div class='wall-placeholder'></div>"}<p>${r.answer}</p></article>`).join("");
+ $(".wall-film").forEach(el=>{makeDraggable(el);el.ondblclick=()=>openWallDetail(el.dataset.id)});
 }
 function makeDraggable(el){
  let sx=0,sy=0,ox=0,oy=0,drag=false;
  el.onpointerdown=e=>{drag=true;el.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;const r=el.getBoundingClientRect(),b=$("#wallBoard").getBoundingClientRect();ox=r.left-b.left;oy=r.top-b.top;el.style.zIndex=30};
  el.onpointermove=e=>{if(!drag)return;const b=$("#wallBoard").getBoundingClientRect();el.style.left=Math.max(0,Math.min(b.width-el.offsetWidth,ox+e.clientX-sx))+"px";el.style.top=Math.max(0,Math.min(b.height-el.offsetHeight,oy+e.clientY-sy))+"px"};
- el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.i));if(item){item.x=el.offsetLeft;item.y=el.offsetTop;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
+ el.onpointerup=async()=>{if(!drag)return;drag=false;el.classList.add("hammering","settling");const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));if(item){item.x=el.offsetLeft;item.y=el.offsetTop;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}setTimeout(()=>el.classList.remove("hammering","settling"),550)}
 }
+async function openWallDetail(id){
+ const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
+ selectedWallItem=item;
+ $("#wallDetailPhoto").innerHTML=item.image?'<img src="'+item.image+'" alt="">':'<div class="wall-detail-placeholder"></div>';
+ $("#wallDetailQuestion").textContent=item.question||"";
+ $("#wallDetailAnswer").textContent=item.answer||"";
+ const mine=String(item.ownerToken||"")===ownerToken;
+ $("#wallDeleteBtn").style.display=mine?"inline-flex":"none";
+ $("#wallOwnerHint").textContent=mine?"내가 올린 필름":"게시자가 아닌 필름";
+ $("#wallDetailModal").classList.add("show");
+}
+$("#wallDeleteBtn").onclick=async()=>{
+ if(!selectedWallItem||String(selectedWallItem.ownerToken||"")!==ownerToken)return;
+ try{
+  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
+  if(!r.ok)throw new Error("delete");
+  window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(selectedWallItem.id));
+  const rec=records.find(x=>String(x.id)===String(selectedWallItem.id));if(rec){rec.posted=false;save();}
+  $("#wallDetailModal").classList.remove("show");selectedWallItem=null;renderWall();toast("게시판에서 삭제했어.");
+ }catch{toast("삭제에 실패했어.");}
+};
 $("#resetWall").onclick=loadWall;
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
