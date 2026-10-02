@@ -142,7 +142,7 @@ function renderBundle(){
  $("#bundleTotal").textContent=records.length+"장";
  const groups={};records.forEach(r=>(groups[r.category]??=[]).push(r));
  const entries=Object.entries(groups);
- $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${a.at(-1).image?`<img src="${a.at(-1).image}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
+ $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
  $$(".folder").forEach(b=>b.onclick=()=>openBundle(b.dataset.cat));
 }
 function openBundle(cat){
@@ -199,7 +199,7 @@ function makeDraggable(el){
 async function openWallDetail(id){
  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
  selectedWallItem=item;
- $("#wallDetailPhoto").innerHTML=item.image?'<img src="'+item.image+'" alt="">':'<div class="wall-detail-placeholder"></div>';
+ $("#wallDetailPhoto").innerHTML=safeImageSrc(item.image)?'<img src="'+safeImageSrc(item.image)+'" alt="">':'<div class="wall-detail-placeholder"></div>';
  $("#wallDetailQuestion").textContent=item.question||"";
  $("#wallDetailAnswer").textContent=item.answer||"";
  const mine=String(records.find(r=>String(r.id)===String(item.id))?.ownerToken||"")===ownerToken;
