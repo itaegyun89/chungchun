@@ -34,7 +34,7 @@ function safeImageSrc(value){
 }
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800)}
 function page(id){
-  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
   if(id==="wall"&&!sharedWallLoaded&&!wallLoading)loadWall();
 }
