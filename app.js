@@ -155,7 +155,12 @@ function renderBundle(){
  $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
  $$(".folder").forEach(b=>b.onclick=()=>openBundle(b.dataset.cat));
 }
-function openBundle(cat){
+async function openBundle(cat){
+ // 새로고침 직후에는 localStorage의 posted 값이 예전 상태일 수 있다.
+ // 묶음을 열 때 서버의 현재 벽 상태를 먼저 확인해서 버튼 상태를 결정한다.
+ if(!sharedWallLoaded){
+  await loadWall(true);
+ }
  const arr=records.filter(r=>r.category===cat);
  const wallIds=new Set((window.sharedWall||[]).map(x=>String(x.id)));
  $("#bundleModalTitle").textContent=cat;
@@ -163,7 +168,7 @@ function openBundle(cat){
  $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
    <div class="bundle-photo"><img class="filter-${r.filter||"normal"}" src="${r.image}" alt=""></div>
    <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
-   <button class="post-one" data-id="${r.id}">${(sharedWallLoaded?wallIds.has(String(r.id)):r.posted)?"게시됨":"게시판에 올리기"}</button>
+   <button class="post-one" data-id="${r.id}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
  $("#bundleModal").classList.add("show");
  $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
