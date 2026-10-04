@@ -82,7 +82,10 @@ async function writeWall(item){
     rotation:Number.isFinite(Number(item.rotation))?Math.max(-12,Math.min(12,Number(item.rotation))):null
   };
 
-  const exists=await pool.query("SELECT 1 FROM wall_items WHERE id=$1",[id]);
+  const exists=await pool.query("SELECT item FROM wall_items WHERE id=$1",[id]);
+  if(exists.rowCount&&!clean.ownerToken){
+    clean.ownerToken=String(exists.rows[0]?.item?.ownerToken||"").slice(0,200);
+  }
   if(!exists.rowCount){
     const h=[...id].reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0),0);
     clean.x=(h%76)+8;
@@ -165,9 +168,9 @@ const server=http.createServer(async(req,res)=>{
       "Connection":"keep-alive",
       "Access-Control-Allow-Origin":"*"
     });
-    res.write(": connected\\n\\n");
+    res.write(": connected\n\n");
     wallClients.add(res);
-    const heartbeat=setInterval(()=>{try{res.write(": ping\\n\\n")}catch{}},25000);
+    const heartbeat=setInterval(()=>{try{res.write(": ping\n\n")}catch{}},25000);
     req.on("close",()=>{clearInterval(heartbeat);wallClients.delete(res)});
     return;
   }
