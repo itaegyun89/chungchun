@@ -153,11 +153,14 @@ function renderBundle(){
  const groups={};records.forEach(r=>(groups[r.category]??=[]).push(r));
  const entries=Object.entries(groups);
  $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
- $$(".folder").forEach(b=>b.onclick=()=>openBundle(b.dataset.cat));
+ $("#folderGrid").onclick=e=>{
+  const b=e.target.closest(".folder[data-cat]");
+  if(b)openBundle(b.dataset.cat);
+ };
 }
 function renderBundleButtons(){
  const wallIds=new Set((window.sharedWall||[]).map(x=>String(x.id)));
- $(".post-one").forEach(b=>{
+ $$(".post-one").forEach(b=>{
   const posted=wallIds.has(String(b.dataset.id));
   b.disabled=false;
   b.textContent=posted?"게시됨":"게시판에 올리기";
@@ -172,16 +175,16 @@ function openBundle(cat){
  $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
    <div class="bundle-photo"><img class="filter-${r.filter||"normal"}" src="${r.image}" alt=""></div>
    <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
-   <button class="post-one" data-id="${r.id}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
+   <button type="button" class="post-one" data-id="${r.id}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
  $("#bundleModal").classList.add("show");
  $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
 
- // 서버 확인은 화면을 막지 않고 뒤에서 한다.
  if(!sharedWallLoaded&&!wallLoading){
   loadWall(true).then(()=>renderBundleButtons()).catch(()=>{});
  }
 }
+
 async function postRecordToWall(id,button){
  const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
  if(rec.posted){toast("이미 게시된 필름이야.");return}
@@ -251,18 +254,32 @@ function connectWallEvents(){
 }
 
 async function loadWall(preserveOnError=false){
- wallLoading=true;renderWall();
+ if(wallLoading)return;
+ wallLoading=true;
+ renderWall();
  try{
   const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{cache:"no-store"});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("wall get "+r.status));
   if(!Array.isArray(d.items))throw new Error("invalid wall response");
-  window.sharedWall=d.items;sharedWallLoaded=true;
-  const ids=new Set(d.items.map(x=>String(x.id)));let changed=false;
-  records.forEach(rec=>{const next=ids.has(String(rec.id));if(rec.posted!==next){rec.posted=next;changed=true;}});
+  window.sharedWall=d.items;
+  sharedWallLoaded=true;
+  const ids=new Set(d.items.map(x=>String(x.id)));
+  let changed=false;
+  records.forEach(rec=>{
+   const next=ids.has(String(rec.id));
+   if(rec.posted!==next){rec.posted=next;changed=true;}
+  });
   if(changed)save();
-  renderWall();renderBundle();
- }catch(e){console.warn("wall sync failed:",e);if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);}
+  renderWall();
+  renderBundle();
+  renderBundleButtons();
+ }catch(e){
+  console.warn("wall sync failed:",e);
+  if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);
+ }finally{
+  wallLoading=false;
+ }
 }
 function renderWall(){
  const arr=(window.sharedWall||[]);
