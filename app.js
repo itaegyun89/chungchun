@@ -155,12 +155,16 @@ function renderBundle(){
  $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
  $$(".folder").forEach(b=>b.onclick=()=>openBundle(b.dataset.cat));
 }
-async function openBundle(cat){
- // 새로고침 직후에는 localStorage의 posted 값이 예전 상태일 수 있다.
- // 묶음을 열 때 서버의 현재 벽 상태를 먼저 확인해서 버튼 상태를 결정한다.
- if(!sharedWallLoaded){
-  await loadWall(true);
- }
+function renderBundleButtons(){
+ const wallIds=new Set((window.sharedWall||[]).map(x=>String(x.id)));
+ $(".post-one").forEach(b=>{
+  const posted=wallIds.has(String(b.dataset.id));
+  b.disabled=false;
+  b.textContent=posted?"게시됨":"게시판에 올리기";
+ });
+}
+
+function openBundle(cat){
  const arr=records.filter(r=>r.category===cat);
  const wallIds=new Set((window.sharedWall||[]).map(x=>String(x.id)));
  $("#bundleModalTitle").textContent=cat;
@@ -172,6 +176,11 @@ async function openBundle(cat){
  </article>`).join("");
  $("#bundleModal").classList.add("show");
  $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
+
+ // 서버 확인은 화면을 막지 않고 뒤에서 한다.
+ if(!sharedWallLoaded&&!wallLoading){
+  loadWall(true).then(()=>renderBundleButtons()).catch(()=>{});
+ }
 }
 async function postRecordToWall(id,button){
  const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
@@ -235,7 +244,7 @@ function connectWallEvents(){
     records.forEach(r=>r.posted=false);save();
    }
    sharedWallLoaded=true;
-   renderWall();renderBundle();
+   renderWall();renderBundle();renderBundleButtons();
   }catch(err){console.warn("wall event:",err)}
  });
  wallEvents.onerror=()=>console.warn("wall realtime connection lost; browser will retry automatically");
