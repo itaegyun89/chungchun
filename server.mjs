@@ -53,7 +53,7 @@ function publicWallItem(item){
 function broadcastWall(type,item){
   const payload=JSON.stringify({type,item:item?publicWallItem(item):null});
   for(const client of wallClients){
-    try{client.write(`event: wall\\ndata: ${payload}\\n\\n`)}catch{wallClients.delete(client)}
+    try{client.write(`event: wall\ndata: ${payload}\n\n`)}catch{wallClients.delete(client)}
   }
 }
 
