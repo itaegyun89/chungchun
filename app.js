@@ -21,6 +21,7 @@ const ownerToken=localStorage.getItem("chungchun_owner_token")||crypto.randomUUI
 localStorage.setItem("chungchun_owner_token",ownerToken);
 let selectedWallItem=null;
 let sharedWallLoaded=false,wallLoading=false;
+let wallEvents=null;
 let lastWallTap={id:"",time:0};
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
@@ -36,7 +37,10 @@ function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");se
 function page(id){
   $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
-  if(id==="wall"&&!sharedWallLoaded&&!wallLoading)loadWall();
+  if(id==="wall"){
+    if(!sharedWallLoaded&&!wallLoading)loadWall();
+    connectWallEvents();
+  }
 }
 $$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
 
@@ -189,7 +193,34 @@ async function postRecordToWall(id,button){
   button.disabled=false;button.textContent=rec.posted?"게시됨":"게시판에 올리기";
   toast("게시판 연결에 실패했어: "+e.message);
 }
-}async function loadWall(preserveOnError=false){
+}function connectWallEvents(){
+ if(wallEvents||typeof EventSource==="undefined")return;
+ wallEvents=new EventSource("https://ceongcunmuggeum.onrender.com/api/wall/events");
+ wallEvents.addEventListener("wall",e=>{
+  try{
+   const msg=JSON.parse(e.data);
+   if(msg.type==="upsert"&&msg.item){
+    window.sharedWall=Array.isArray(window.sharedWall)?window.sharedWall:[];
+    const idx=window.sharedWall.findIndex(x=>String(x.id)===String(msg.item.id));
+    if(idx>=0)window.sharedWall[idx]=msg.item;else window.sharedWall.unshift(msg.item);
+    const rec=records.find(x=>String(x.id)===String(msg.item.id));
+    if(rec){rec.posted=true;save()}
+   }else if(msg.type==="delete"&&msg.item?.id){
+    window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(msg.item.id));
+    const rec=records.find(x=>String(x.id)===String(msg.item.id));
+    if(rec){rec.posted=false;save()}
+   }else if(msg.type==="clear"){
+    window.sharedWall=[];
+    records.forEach(r=>r.posted=false);save();
+   }
+   sharedWallLoaded=true;
+   renderWall();renderBundle();
+  }catch(err){console.warn("wall event:",err)}
+ });
+ wallEvents.onerror=()=>console.warn("wall realtime connection lost; browser will retry automatically");
+}
+
+async function loadWall(preserveOnError=false){
  wallLoading=true;renderWall();
  try{
   const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{cache:"no-store"});
