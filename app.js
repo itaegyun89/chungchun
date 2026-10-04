@@ -23,6 +23,7 @@ let selectedWallItem=null;
 let sharedWallLoaded=false,wallLoading=false;
 let wallEvents=null;
 let wallPollTimer=null;
+let wallRequestController=null;
 let lastWallTap={id:"",time:0};
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
@@ -198,7 +199,7 @@ async function postRecordToWall(id,button){
  button.disabled=true;button.textContent="게시 중...";
  const markPosted=()=>{rec.posted=true;save();if(button){button.disabled=false;button.textContent="게시됨";}};
  try{
-  const r=await fetch("/api/wall",{
+  const r=await fetch("/api/wall?_="+Date.now(),{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({...rec})
@@ -239,7 +240,7 @@ function startWallPolling(){
  if(wallPollTimer)return;
  wallPollTimer=setInterval(()=>{
   if(document.querySelector("#wall")?.classList.contains("active"))loadWall(true);
- },5000);
+ },2000);
 }
 function stopWallPolling(){
  if(wallPollTimer){clearInterval(wallPollTimer);wallPollTimer=null}
@@ -276,8 +277,11 @@ async function loadWall(preserveOnError=false){
  if(wallLoading)return;
  wallLoading=true;
  renderWall();
+ if(wallRequestController)wallRequestController.abort();
+ wallRequestController=new AbortController();
+ const timeout=setTimeout(()=>wallRequestController.abort(),8000);
  try{
-  const r=await fetch("/api/wall",{cache:"no-store"});
+  const r=await fetch("/api/wall?_="+Date.now(),{cache:"no-store",signal:wallRequestController.signal});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("wall get "+r.status));
   if(!Array.isArray(d.items))throw new Error("invalid wall response");
@@ -297,7 +301,9 @@ async function loadWall(preserveOnError=false){
   console.warn("wall sync failed:",e);
   if(!preserveOnError)toast("벽을 불러오지 못했어: "+e.message);
  }finally{
+  clearTimeout(timeout);
   wallLoading=false;
+  wallRequestController=null;
  }
 }
 function renderWall(){
