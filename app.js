@@ -174,26 +174,42 @@ async function postRecordToWall(id,button){
  button.disabled=true;button.textContent="게시 중...";
  const markPosted=()=>{rec.posted=true;save();if(button){button.disabled=false;button.textContent="게시됨";}};
  try{
-  const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...rec})});
+  const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{
+   method:"POST",
+   headers:{"Content-Type":"application/json"},
+   body:JSON.stringify({...rec})
+  });
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("wall "+r.status));
+
+  // 서버 저장 성공을 확인했으므로, 이후 화면 갱신 오류 때문에
+  // "게시 실패"로 오인하지 않도록 저장과 UI 갱신을 분리한다.
   markPosted();
-  const postedItem={...rec};window.sharedWall=Array.isArray(window.sharedWall)?window.sharedWall:[];
+  const postedItem={...rec};
+  window.sharedWall=Array.isArray(window.sharedWall)?window.sharedWall:[];
   const idx=window.sharedWall.findIndex(x=>String(x.id)===String(rec.id));
   if(idx>=0)window.sharedWall[idx]=postedItem;else window.sharedWall.unshift(postedItem);
-  sharedWallLoaded=true;renderWall();renderBundle();toast("게시판에 올렸어.");loadWall(true);
+  sharedWallLoaded=true;
+
+  try{renderWall();renderBundle();}catch(uiError){console.warn("wall UI refresh:",uiError)}
+  toast("게시판에 올렸어.");
  }catch(e){
+  // 네트워크가 응답 전에 끊겨도 서버에는 저장됐을 수 있으므로 한 번 확인한다.
   try{
    const check=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{cache:"no-store"});
    const data=await check.json().catch(()=>({}));
    if(check.ok&&Array.isArray(data.items)&&data.items.some(x=>String(x.id)===String(rec.id))){
-    window.sharedWall=data.items;sharedWallLoaded=true;markPosted();renderWall();renderBundle();toast("게시판에 올렸어.");return;
+    window.sharedWall=data.items;sharedWallLoaded=true;markPosted();
+    try{renderWall();renderBundle();}catch(uiError){console.warn("wall UI refresh:",uiError)}
+    toast("게시판에 올렸어.");
+    return;
    }
-  }catch{}
+  }catch(checkError){console.warn("wall save verification:",checkError)}
   button.disabled=false;button.textContent=rec.posted?"게시됨":"게시판에 올리기";
   toast("게시판 연결에 실패했어: "+e.message);
 }
-}function connectWallEvents(){
+}
+function connectWallEvents(){
  if(wallEvents||typeof EventSource==="undefined")return;
  wallEvents=new EventSource("https://ceongcunmuggeum.onrender.com/api/wall/events");
  wallEvents.addEventListener("wall",e=>{
