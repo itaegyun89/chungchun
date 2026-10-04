@@ -187,7 +187,10 @@ function openBundle(cat){
 
 async function postRecordToWall(id,button){
  const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
- if(rec.posted){toast("이미 게시된 필름이야.");return}
+ const actuallyPosted=sharedWallLoaded && (window.sharedWall||[]).some(x=>String(x.id)===String(id));
+ if(actuallyPosted){toast("이미 게시된 필름이야.");return}
+ // localStorage의 오래된 posted 값은 신뢰하지 않는다.
+ if(rec.posted){rec.posted=false;save()}
  button.disabled=true;button.textContent="게시 중...";
  const markPosted=()=>{rec.posted=true;save();if(button){button.disabled=false;button.textContent="게시됨";}};
  try{
@@ -208,7 +211,9 @@ async function postRecordToWall(id,button){
   if(idx>=0)window.sharedWall[idx]=postedItem;else window.sharedWall.unshift(postedItem);
   sharedWallLoaded=true;
 
-  try{renderWall();renderBundle();}catch(uiError){console.warn("wall UI refresh:",uiError)}
+  // 서버 저장 성공 후 실제 서버 목록을 다시 읽어 벽 상태를 확정한다.
+  try{await loadWall(true)}catch{}
+  try{renderWall();renderBundle();renderBundleButtons()}catch(uiError){console.warn("wall UI refresh:",uiError)}
   toast("게시판에 올렸어.");
  }catch(e){
   // 네트워크가 응답 전에 끊겨도 서버에는 저장됐을 수 있으므로 한 번 확인한다.
@@ -217,7 +222,7 @@ async function postRecordToWall(id,button){
    const data=await check.json().catch(()=>({}));
    if(check.ok&&Array.isArray(data.items)&&data.items.some(x=>String(x.id)===String(rec.id))){
     window.sharedWall=data.items;sharedWallLoaded=true;markPosted();
-    try{renderWall();renderBundle();}catch(uiError){console.warn("wall UI refresh:",uiError)}
+    try{renderWall();renderBundle();renderBundleButtons()}catch(uiError){console.warn("wall UI refresh:",uiError)}
     toast("게시판에 올렸어.");
     return;
    }
