@@ -20,7 +20,7 @@ try{
 const ownerToken=localStorage.getItem("chungchun_owner_token")||crypto.randomUUID();
 localStorage.setItem("chungchun_owner_token",ownerToken);
 let selectedWallItem=null;
-let sharedWallLoaded=false;
+let sharedWallLoaded=false,wallLoading=false;
 let lastWallTap={id:"",time:0};
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
@@ -33,7 +33,11 @@ function safeImageSrc(value){
   return /^data:image\/(?:jpeg|jpg|png|webp|gif);base64,/i.test(s)?s:"";
 }
 function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800)}
-function page(id){$$(".page").forEach(x=>x.classList.toggle("active",x.id===id));window.scrollTo(0,0)}
+function page(id){
+  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  window.scrollTo(0,0);
+  if(id==="wall"&&!sharedWallLoaded&&!wallLoading)loadWall();
+}
 $$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
 
 function renderCategories(){
@@ -186,6 +190,7 @@ async function postRecordToWall(id,button){
   toast("게시판 연결에 실패했어: "+e.message);
 }
 }async function loadWall(preserveOnError=false){
+ wallLoading=true;renderWall();
  try{
   const r=await fetch("https://ceongcunmuggeum.onrender.com/api/wall",{cache:"no-store"});
   const d=await r.json().catch(()=>({}));
@@ -280,6 +285,6 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
  }catch(e){console.warn("question API:",e);toast("질문 API 연결을 확인해줘");return []}
 };
 
-renderCategories();renderBundle();renderWall();loadWall();
+renderCategories();renderBundle();renderWall();
 $$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
 })();
