@@ -176,19 +176,24 @@ const server=http.createServer(async(req,res)=>{
   }
 
   if(u.pathname==="/api/wall"&&req.method==="GET"){
+    console.log("WALL GET", new Date().toISOString());
     if(!pool)return json(res,503,{error:"Wall database is not configured"});
     if(!wallReady)return json(res,503,{error:"Wall database is not ready"});
-    return json(res,200,{items:await readWall()});
+    const items=await readWall();
+    console.log("WALL GET OK", items.length);
+    return json(res,200,{items});
   }
 
   if(u.pathname==="/api/wall"&&req.method==="POST"){
+    console.log("WALL POST");
     if(!pool)return json(res,503,{error:"Wall database is not configured"});
     if(!wallReady)return json(res,503,{error:"Wall database is not ready"});
     const item=await readBody(req);
     if(!item.id)return json(res,400,{error:"id required"});
     await writeWall(item);
     broadcastWall("upsert",item);
-    return json(res,200,{ok:true});
+    console.log("WALL POST OK", String(item.id));
+    return json(res,200,{ok:true,item:publicWallItem(item)});
   }
 
   if(u.pathname==="/api/wall"&&req.method==="DELETE"){
