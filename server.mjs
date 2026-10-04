@@ -22,6 +22,7 @@ const pool=process.env.DATABASE_URL
   :null;
 
 let wallReady=false;
+const wallClients=new Set();
 if(pool) pool.on("error",e=>console.error("PG POOL:",e.message));
 
 async function initWall(){
@@ -41,6 +42,19 @@ async function readWall(){
     delete copy.ownerToken;
     return copy;
   });
+}
+
+function publicWallItem(item){
+  const copy={...item};
+  delete copy.ownerToken;
+  return copy;
+}
+
+function broadcastWall(type,item){
+  const payload=JSON.stringify({type,item:item?publicWallItem(item):null});
+  for(const client of wallClients){
+    try{client.write(`event: wall\\ndata: ${payload}\\n\\n`)}catch{wallClients.delete(client)}
+  }
 }
 
 function isSafeImage(value){
@@ -142,6 +156,22 @@ const server=http.createServer(async(req,res)=>{
     }
   }
 
+  if(u.pathname==="/api/wall/events"&&req.method==="GET"){
+    if(!pool)return json(res,503,{error:"Wall database is not configured"});
+    if(!wallReady)return json(res,503,{error:"Wall database is not ready"});
+    res.writeHead(200,{
+      "Content-Type":"text/event-stream; charset=utf-8",
+      "Cache-Control":"no-cache, no-transform",
+      "Connection":"keep-alive",
+      "Access-Control-Allow-Origin":"*"
+    });
+    res.write(": connected\\n\\n");
+    wallClients.add(res);
+    const heartbeat=setInterval(()=>{try{res.write(": ping\\n\\n")}catch{}},25000);
+    req.on("close",()=>{clearInterval(heartbeat);wallClients.delete(res)});
+    return;
+  }
+
   if(u.pathname==="/api/wall"&&req.method==="GET"){
     if(!pool)return json(res,503,{error:"Wall database is not configured"});
     if(!wallReady)return json(res,503,{error:"Wall database is not ready"});
@@ -154,6 +184,7 @@ const server=http.createServer(async(req,res)=>{
     const item=await readBody(req);
     if(!item.id)return json(res,400,{error:"id required"});
     await writeWall(item);
+    broadcastWall("upsert",item);
     return json(res,200,{ok:true});
   }
 
@@ -170,10 +201,12 @@ const server=http.createServer(async(req,res)=>{
       if(!keysEqual(adminKey,configuredAdminKey))return json(res,403,{error:"invalid admin key"});
       if(body.all===true){
         await pool.query("DELETE FROM wall_items");
+        broadcastWall("clear",null);
         return json(res,200,{ok:true,all:true});
       }
       if(body.id){
         const result=await pool.query("DELETE FROM wall_items WHERE id=$1",[String(body.id)]);
+        if(result.rowCount)broadcastWall("delete",{id:String(body.id)});
         return json(res,result.rowCount?200:404,{ok:Boolean(result.rowCount)});
       }
       return json(res,400,{error:"id or all required"});
@@ -185,6 +218,7 @@ const server=http.createServer(async(req,res)=>{
       [String(body.id),String(body.ownerToken)]
     );
     if(!result.rowCount)return json(res,403,{error:"not owner"});
+    broadcastWall("delete",{id:String(body.id)});
     return json(res,200,{ok:true});
   }
 
