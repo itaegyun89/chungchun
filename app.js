@@ -144,7 +144,14 @@ $("#authForm").onsubmit=async e=>{
   }
 };
 $("#authLogout").onclick=async()=>{
-  try{await accountFetch("/api/auth/logout",{method:"POST",body:"{}"})}catch(e){console.warn("logout:",e)}
+  try{
+    await pushAccountRecords();
+    await accountFetch("/api/auth/logout",{method:"POST",body:"{}"});
+  }catch(e){
+    console.warn("logout:",e);
+    toast("계정 저장에 실패했어. 연결을 확인한 뒤 다시 시도해줘.");
+    return;
+  }
   clearTimeout(accountSyncTimer);
   currentUser=null;records=[];
   localStorage.setItem("chungchun_records","[]");
