@@ -214,7 +214,7 @@ function openCategory(cat){
  $("#subcats").onclick=e=>{const b=e.target.closest("button[data-sub]");if(b)toggleSub(b)};
  renderTags(); renderQuestions();
 }
-function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.includes(sub)){const custom=prompt("나를 나타내는 세부 카테고리를 입력해주세요.");if(!custom?.trim())return;sub=custom.trim();b.dataset.sub=sub;b.textContent="#"+sub}if(selectedSubs.includes(sub)){selectedSubs=selectedSubs.filter(x=>x!==sub);b.classList.remove("active")}else if(selectedSubs.length<3){selectedSubs.push(sub);b.classList.add("active")}else{toast("세부 카테고리는 최대 3개까지 선택할 수 있습니다.");return}renderTags();renderQuestions()}
+async function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.includes(sub)){const custom=await appDialog("세부 카테고리 추가","나를 나타내는 세부 카테고리를 입력해 줘.","prompt","예: 나만의 취향","추가하기");if(!custom)return;sub=custom;b.dataset.sub=sub;b.textContent="#"+sub}if(selectedSubs.includes(sub)){selectedSubs=selectedSubs.filter(x=>x!==sub);b.classList.remove("active")}else if(selectedSubs.length<3){selectedSubs.push(sub);b.classList.add("active")}else{toast("세부 카테고리는 최대 3개까지 선택할 수 있습니다.");return}renderTags();renderQuestions()}
 function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#${escapeHtml(x)}</span>`).join("")}
 function renderQuestions(){
  const qs=[...questions];
@@ -359,7 +359,7 @@ function openBundle(cat){
 async function deleteBundleRecord(id,cat,button){
  const rec=records.find(r=>String(r.id)===String(id));
  if(!rec){toast("삭제할 기록을 찾지 못했어.");return}
- if(!confirm("이 사진을 묶음에서 삭제할까?\n게시판에 올린 사진은 게시판에 그대로 남아 있어."))return;
+ if(!await appDialog("사진을 삭제할까?","이 사진을 묶음에서 삭제할까?\n게시판에 올린 사진은 게시판에 그대로 남아 있어.","confirm","","삭제하기",true))return;
  button.disabled=true;button.textContent="삭제 중...";
  let remoteDeleted=!currentUser;
  try{
@@ -558,7 +558,7 @@ $("#wallDeleteBtn").onclick=async()=>{
 $("#resetWall").onclick=loadWall;
 let developerAdminKey=sessionStorage.getItem("chungchun_admin_key")||"";
 async function developerDeleteAll(){
- const key=developerAdminKey||prompt("개발자 관리자 키를 입력해주세요.");
+ const key=developerAdminKey||await appDialog("관리자 인증","개발자 관리자 키를 입력해 줘.","prompt","관리자 키","인증하기");
  if(!key)return;
  try{
   const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
