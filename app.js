@@ -321,7 +321,7 @@ function openBundle(cat){
    <button type="button" class="post-one" data-id="${escapeHtml(r.id)}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
  $("#bundleModal").classList.add("show");
- $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
+ $("#bundleCards").onclick=e=>{const b=e.target.closest("button.post-one[data-id]");if(b)postRecordToWall(b.dataset.id,b);};
 
  if(!sharedWallLoaded&&!wallLoading){
   loadWall(true).then(()=>renderBundleButtons()).catch(()=>{});
@@ -329,7 +329,7 @@ function openBundle(cat){
 }
 
 async function postRecordToWall(id,button){
- const rec=records.find(r=>String(r.id)===String(id)); if(!rec)return;
+ const rec=records.find(r=>String(r.id)===String(id)); if(!rec){if(button){button.disabled=false;button.textContent="게시판에 올리기"}toast("이 기기의 묶음에서 기록을 찾지 못했어. 기록을 만든 기기에서 다시 확인해줘.");return;}
  const actuallyPosted=sharedWallLoaded && (window.sharedWall||[]).some(x=>String(x.id)===String(id));
  if(actuallyPosted){toast("이미 게시된 필름이야.");return}
  // localStorage의 오래된 posted 값은 신뢰하지 않는다.
@@ -451,7 +451,7 @@ function renderWall(){
   const id=escapeHtml(r.id);
   return `<article class="wall-film" data-id="${id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)">
     <span class="nail"></span><span class="hammer"></span>
-    ${image?`<img src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
+    ${image?`<img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
     <p>${escapeHtml(r.answer)}</p>
   </article>`;
  }).join("");
