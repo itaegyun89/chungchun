@@ -82,9 +82,13 @@ async function writeWall(item){
     rotation:Number.isFinite(Number(item.rotation))?Math.max(-12,Math.min(12,Number(item.rotation))):null
   };
 
+  if(!clean.ownerToken)throw Object.assign(new Error("owner token required"),{statusCode:400});
   const exists=await pool.query("SELECT item FROM wall_items WHERE id=$1",[id]);
-  if(exists.rowCount&&!clean.ownerToken){
-    clean.ownerToken=String(exists.rows[0]?.item?.ownerToken||"").slice(0,200);
+  if(exists.rowCount){
+    const storedToken=String(exists.rows[0]?.item?.ownerToken||"");
+    if(!keysEqual(clean.ownerToken,storedToken)){
+      throw Object.assign(new Error("not owner"),{statusCode:403});
+    }
   }
   if(!exists.rowCount){
     const h=[...id].reduce((a,c)=>((a*31+c.charCodeAt(0))>>>0),0);
