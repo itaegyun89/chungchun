@@ -237,7 +237,7 @@ const server=http.createServer(async(req,res)=>{
       const usernameKey=username.toLocaleLowerCase("en-US");
       const password=String(body.password||"");
       if(!/^[\p{L}\p{N}_-]{3,24}$/u.test(username))return json(res,400,{error:"아이디는 한글·영문·숫자·_- 조합 3~24자로 입력해줘."});
-      if(password.length<8||password.length>128)return json(res,400,{error:"비밀번호는 8~128자로 설정해줘."});
+      if(password.length<4||password.length>128)return json(res,400,{error:"비밀번호는 4~128자로 설정해줘."});
       const id=crypto.randomUUID();
       const salt=crypto.randomBytes(16).toString("hex");
       const passwordHash=await scryptPassword(password,salt);
