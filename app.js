@@ -23,6 +23,7 @@ localStorage.setItem("chungchun_owner_token",ownerToken);
 let currentUser=null;
 let accountSyncTimer=null;
 let accountSyncing=false;
+let accountSyncPending=false;
 let authMode="login";
 let selectedWallItem=null;
 let sharedWallLoaded=false,wallLoading=false;
@@ -47,11 +48,19 @@ async function accountFetch(url,options={}){
   return data;
 }
 async function pushAccountRecords(){
-  if(!currentUser||accountSyncing)return;
+  if(!currentUser)return;
+  if(accountSyncing){accountSyncPending=true;return}
   accountSyncing=true;
   try{
     await accountFetch("/api/account/records",{method:"POST",body:JSON.stringify({records})});
-  }finally{accountSyncing=false}
+  }finally{
+    accountSyncing=false;
+    if(accountSyncPending){
+      accountSyncPending=false;
+      clearTimeout(accountSyncTimer);
+      accountSyncTimer=setTimeout(()=>pushAccountRecords().catch(e=>console.warn("account sync:",e)),150);
+    }
+  }
 }
 async function syncAccountRecords(mergeLocal=true){
   const data=await accountFetch("/api/account/records");
