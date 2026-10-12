@@ -178,9 +178,9 @@ function openBundle(cat){
  $("#bundleModalTitle").textContent=cat;
  $("#bundleModalCount").textContent=arr.length+" / 10장";
  $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
-   <div class="bundle-photo"><img class="filter-${r.filter||"normal"}" src="${r.image}" alt=""></div>
-   <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
-   <button type="button" class="post-one" data-id="${r.id}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
+   <div class="bundle-photo"><img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${escapeHtml(safeImageSrc(r.image))}" alt=""></div>
+   <div class="bundle-copy"><small>${escapeHtml(r.question)}</small><strong>${escapeHtml(r.answer)}</strong></div>
+   <button type="button" class="post-one" data-id="${escapeHtml(r.id)}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
  $("#bundleModal").classList.add("show");
  $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
@@ -328,7 +328,13 @@ function makeDraggable(el){
   if(!moved){const now=Date.now(),id=String(el.dataset.id);if(lastWallTap.id===id&&now-lastWallTap.time<420){lastWallTap={id:"",time:0};openWallDetail(id)}else lastWallTap={id,time:now}}else lastWallTap={id:"",time:0};
   el.classList.add("hammering","settling");
   const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));
-  if(item){const board=$("#wallBoard");item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}
+  const ownRecord=records.find(x=>String(x.id)===String(el.dataset.id));
+  if(item&&ownRecord){
+   const board=$("#wallBoard");
+   item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;
+   item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;
+   try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,ownerToken:ownRecord.ownerToken})})}catch{}
+  }
   setTimeout(()=>el.classList.remove("hammering","settling"),550);
  };
 }
