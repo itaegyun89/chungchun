@@ -62,11 +62,11 @@ function openCategory(cat){
  renderTags(); renderQuestions();
 }
 function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.includes(sub)){const custom=prompt("나를 나타내는 세부 카테고리를 입력해주세요.");if(!custom?.trim())return;sub=custom.trim();b.dataset.sub=sub;b.textContent="#"+sub}if(selectedSubs.includes(sub)){selectedSubs=selectedSubs.filter(x=>x!==sub);b.classList.remove("active")}else if(selectedSubs.length<3){selectedSubs.push(sub);b.classList.add("active")}else{toast("세부 카테고리는 최대 3개까지 선택할 수 있습니다.");return}renderTags();renderQuestions()}
-function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#${x}</span>`).join("")}
+function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#${escapeHtml(x)}</span>`).join("")}
 function renderQuestions(){
  const qs=[...questions];
  const pos=[[8,8],[35,5],[63,13],[20,38],[52,42],[74,50],[5,67],[39,70]];
- $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${q}"><div class="film-photo"></div><q>${q}</q><small>${String(i+1).padStart(2,"0")} / ${selectedSubs.join(" · ")||selectedCategory}</small></button>`).join("");
+ $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${escapeHtml(q)}"><div class="film-photo"></div><q>${escapeHtml(q)}</q><small>${String(i+1).padStart(2,"0")} / ${escapeHtml(selectedSubs.join(" · ")||selectedCategory)}</small></button>`).join("");
  $$(".film").forEach(makeQuestionFilmDraggable);
 }
 function makeQuestionFilmDraggable(el){
@@ -142,7 +142,13 @@ $("#printBtn").onclick=async()=>{
  if(!answer){toast("한 줄 답변을 남겨주세요.");return}
  const btn=$("#printBtn");btn.disabled=true;btn.textContent="인화 중...";
  const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString(),posted:false,ownerToken};
- records.push(rec);save();
+ records.push(rec);
+ try{save()}catch(e){
+  records.pop();btn.disabled=false;btn.textContent="인화하기";
+  toast("기록을 저장하지 못했어. 브라우저 저장 공간을 확인해줘.");
+  console.error("record save failed:",e);
+  return;
+ }
  $("#editor").classList.add("printing");
  setTimeout(()=>{
   btn.disabled=false;btn.textContent="완성된 필름";
@@ -178,9 +184,9 @@ function openBundle(cat){
  $("#bundleModalTitle").textContent=cat;
  $("#bundleModalCount").textContent=arr.length+" / 10장";
  $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
-   <div class="bundle-photo"><img class="filter-${r.filter||"normal"}" src="${r.image}" alt=""></div>
-   <div class="bundle-copy"><small>${r.question}</small><strong>${r.answer}</strong></div>
-   <button type="button" class="post-one" data-id="${r.id}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
+   <div class="bundle-photo"><img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${escapeHtml(safeImageSrc(r.image))}" alt=""></div>
+   <div class="bundle-copy"><small>${escapeHtml(r.question)}</small><strong>${escapeHtml(r.answer)}</strong></div>
+   <button type="button" class="post-one" data-id="${escapeHtml(r.id)}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
  </article>`).join("");
  $("#bundleModal").classList.add("show");
  $(".post-one").forEach(b=>b.onclick=()=>postRecordToWall(b.dataset.id,b));
@@ -328,7 +334,13 @@ function makeDraggable(el){
   if(!moved){const now=Date.now(),id=String(el.dataset.id);if(lastWallTap.id===id&&now-lastWallTap.time<420){lastWallTap={id:"",time:0};openWallDetail(id)}else lastWallTap={id,time:now}}else lastWallTap={id:"",time:0};
   el.classList.add("hammering","settling");
   const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));
-  if(item){const board=$("#wallBoard");item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(item)})}catch{}}
+  const ownRecord=records.find(x=>String(x.id)===String(el.dataset.id));
+  if(item&&ownRecord){
+   const board=$("#wallBoard");
+   item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;
+   item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;
+   try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,ownerToken:ownRecord.ownerToken})})}catch{}
+  }
   setTimeout(()=>el.classList.remove("hammering","settling"),550);
  };
 }
