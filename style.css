@@ -31,13 +31,3 @@ main{max-width:1240px;margin:auto}.page{display:none;min-height:calc(100vh - 68p
 /* Individual photo deletion inside bundles */
 .bundle-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;margin-top:2px}.bundle-actions .post-one{min-width:0}.delete-record{border:1px solid #e2caca;background:#fff;color:#9b3434;padding:8px 12px;font-size:10px}.delete-record:hover{border-color:#9b3434;background:#fff7f7}.delete-record:disabled{opacity:.55;cursor:wait}.bundle-empty{grid-column:1/-1;padding:32px 16px;text-align:center;color:#888;font-size:12px}
 
-/* Custom in-app dialog styling */
-.app-dialog{z-index:300;background:rgba(28,24,19,.48);backdrop-filter:blur(5px)}
-.app-dialog-card{width:min(420px,100%);padding:30px;background:#f8f3e9;border:1px solid #e3d8c6;border-radius:3px;box-shadow:0 24px 80px rgba(25,20,13,.24)}
-.app-dialog-card h3{font-size:25px;letter-spacing:-.055em;margin:10px 0 8px;color:#352b20}
-.app-dialog-message{font-size:12px;line-height:1.8;color:#756958;white-space:pre-line;margin:0 0 22px}
-.app-dialog-input{display:block;width:100%;padding:12px 13px;margin:0 0 20px;border:1px solid #d8cbb7;background:#fffdf8;color:#352b20;border-radius:3px;font-size:13px;outline:none}
-.app-dialog-actions{display:flex;justify-content:flex-end;gap:8px}
-.app-dialog-actions button{margin:0;border-radius:3px;padding:11px 15px;font-size:11px}
-.app-dialog-actions .app-dialog-danger{background:#8d493e;color:#fff}
-@media(max-width:520px){.app-dialog{padding:18px}.app-dialog-card{padding:24px}}
