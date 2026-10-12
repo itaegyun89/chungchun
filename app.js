@@ -96,7 +96,7 @@ function setAuthMode(mode){
   $("#authTitle").textContent=mode==="login"?"로그인":"회원가입";
   $("#authSubmit").textContent=mode==="login"?"로그인":"계정 만들기";
   $("#authPassword").autocomplete=mode==="login"?"current-password":"new-password";
-  $("#authHint").textContent=mode==="login"?"비밀번호 찾기 기능은 제공하지 않아. 잊지 않도록 보관해줘.":"아이디 3~24자, 비밀번호 8자 이상. 비밀번호 찾기 기능은 없어.";
+  $("#authHint").textContent=mode==="login"?"비밀번호 찾기 기능은 제공하지 않아. 잊지 않도록 보관해줘.":"아이디 3~24자, 비밀번호 4자 이상. 숫자나 특수기호는 필수가 아니야.";
   $("#authMessage").textContent="";
   $("#authMessage").className="auth-message";
 }
