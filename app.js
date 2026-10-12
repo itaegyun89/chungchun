@@ -178,7 +178,17 @@ function safeImageSrc(value){
   const s=String(value||"");
   return /^data:image\/(?:jpeg|jpg|png|webp|gif);base64,/i.test(s)?s:"";
 }
-function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");setTimeout(()=>e.classList.remove("show"),1800)}
+function toast(t){const e=$("#toast");e.textContent=t;e.classList.add("show");clearTimeout(e._timer);e._timer=setTimeout(()=>e.classList.remove("show"),2200)}
+function appDialog(title,message,mode="confirm",placeholder="",okText="확인",danger=false){
+ return new Promise(resolve=>{
+  const modal=$("#appDialog"),input=$("#appDialogInput"),ok=$("#appDialogConfirm"),cancel=$("#appDialogCancel");
+  $("#appDialogTitle").textContent=title;$("#appDialogMessage").textContent=message;input.value="";input.placeholder=placeholder;input.style.display=mode==="prompt"?"block":"none";ok.textContent=okText;ok.classList.toggle("app-dialog-danger",danger);modal.classList.add("show");
+  let done=false;const close=value=>{if(done)return;done=true;modal.classList.remove("show");modal.onclick=null;document.removeEventListener("keydown",onKey);resolve(value)};
+  const onKey=e=>{if(e.key==="Escape")close(mode==="prompt"?null:false);if(e.key==="Enter"&&mode==="prompt"&&document.activeElement===input)close(input.value.trim()||null)};
+  modal.onclick=e=>{if(e.target===modal)close(mode==="prompt"?null:false)};document.addEventListener("keydown",onKey);
+  cancel.onclick=()=>close(mode==="prompt"?null:false);ok.onclick=()=>close(mode==="prompt"?(input.value.trim()||null):true);(mode==="prompt"?input:ok).focus();
+ });
+}
 function page(id){
   $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
