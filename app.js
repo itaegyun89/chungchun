@@ -20,6 +20,11 @@ try{
 }
 const ownerToken=localStorage.getItem("chungchun_owner_token")||crypto.randomUUID();
 localStorage.setItem("chungchun_owner_token",ownerToken);
+let currentUser=null;
+let accountSyncTimer=null;
+let accountSyncing=false;
+let accountSyncPending=false;
+let authMode="login";
 let selectedWallItem=null;
 let sharedWallLoaded=false,wallLoading=false;
 let wallEvents=null;
@@ -28,7 +33,126 @@ let wallRequestController=null;
 let lastWallTap={id:"",time:0};
 let selectedCategory="",selectedSub="",selectedSubs=[],selectedQuestion="",photo="",filter="normal";
 
-function save(){localStorage.setItem("chungchun_records",JSON.stringify(records))}
+function save(syncAccount=true){
+  localStorage.setItem("chungchun_records",JSON.stringify(records));
+  if(syncAccount&&currentUser){
+    clearTimeout(accountSyncTimer);
+    accountSyncTimer=setTimeout(()=>pushAccountRecords().catch(e=>console.warn("account sync:",e)),650);
+  }
+}
+async function accountFetch(url,options={}){
+  const headers={"Content-Type":"application/json",...(options.headers||{})};
+  const response=await fetch(url,{credentials:"same-origin",...options,headers});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(data.error||("HTTP "+response.status));
+  return data;
+}
+async function pushAccountRecords(){
+  if(!currentUser)return;
+  if(accountSyncing){accountSyncPending=true;return}
+  accountSyncing=true;
+  try{
+    await accountFetch("/api/account/records",{method:"POST",body:JSON.stringify({records})});
+  }finally{
+    accountSyncing=false;
+    if(accountSyncPending){
+      accountSyncPending=false;
+      clearTimeout(accountSyncTimer);
+      accountSyncTimer=setTimeout(()=>pushAccountRecords().catch(e=>console.warn("account sync:",e)),150);
+    }
+  }
+}
+async function syncAccountRecords(mergeLocal=true){
+  const data=await accountFetch("/api/account/records");
+  const remote=Array.isArray(data.records)?data.records:[];
+  if(mergeLocal){
+    const merged=new Map(remote.map(r=>[String(r.id),r]));
+    records.forEach(r=>merged.set(String(r.id),r));
+    records=[...merged.values()].sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
+    await accountFetch("/api/account/records",{method:"POST",body:JSON.stringify({records})});
+  }else{
+    records=remote;
+  }
+  localStorage.setItem("chungchun_records",JSON.stringify(records));
+  localStorage.setItem("chungchun_last_account",currentUser.username);
+  renderCategories();renderBundle();
+}
+function renderAccountUI(){
+  $("#accountStatus").textContent=currentUser?currentUser.username:"게스트";
+  $("#accountBtn").textContent=currentUser?"계정":"로그인";
+  $("#authTitle").textContent=currentUser?"계정":"로그인";
+  $("#authDescription").textContent=currentUser?"로그인된 계정으로 묶음이 저장되고 있어.":"계정에 묶음을 저장하고 다른 기기에서도 이어서 기록해.";
+  $("#authForm").style.display=currentUser?"none":"block";
+  $("#authLogout").style.display=currentUser?"block":"none";
+  $("#authLoginTab").style.display=currentUser?"none":"block";
+  $("#authRegisterTab").style.display=currentUser?"none":"block";
+  $("#authMessage").textContent=currentUser?"현재 계정에 기록을 동기화하고 있어.":"";
+  $("#authMessage").className="auth-message";
+}
+function setAuthMode(mode){
+  authMode=mode;
+  $("#authLoginTab").classList.toggle("active",mode==="login");
+  $("#authRegisterTab").classList.toggle("active",mode==="register");
+  $("#authTitle").textContent=mode==="login"?"로그인":"회원가입";
+  $("#authSubmit").textContent=mode==="login"?"로그인":"계정 만들기";
+  $("#authPassword").autocomplete=mode==="login"?"current-password":"new-password";
+  $("#authHint").textContent=mode==="login"?"비밀번호 찾기 기능은 제공하지 않아. 잊지 않도록 보관해줘.":"아이디 3~24자, 비밀번호 8자 이상. 비밀번호 찾기 기능은 없어.";
+  $("#authMessage").textContent="";
+  $("#authMessage").className="auth-message";
+}
+async function restoreAccountSession(){
+  try{
+    const data=await accountFetch("/api/auth/me");
+    if(!data.user){renderAccountUI();return}
+    currentUser=data.user;
+    const previous=localStorage.getItem("chungchun_last_account");
+    await syncAccountRecords(!previous||previous===currentUser.username);
+    renderAccountUI();
+  }catch(e){
+    console.warn("account session restore:",e);
+    renderAccountUI();
+  }
+}
+$("#accountBtn").onclick=()=>{
+  renderAccountUI();
+  if(!currentUser)setAuthMode("login");
+  $("#authModal").classList.add("show");
+};
+$("#authLoginTab").onclick=()=>setAuthMode("login");
+$("#authRegisterTab").onclick=()=>setAuthMode("register");
+$("#authForm").onsubmit=async e=>{
+  e.preventDefault();
+  const username=$("#authUsername").value.trim(),password=$("#authPassword").value;
+  const submit=$("#authSubmit"),message=$("#authMessage");
+  submit.disabled=true;submit.textContent="처리 중...";
+  message.textContent="";message.className="auth-message";
+  try{
+    const endpoint=authMode==="login"?"/api/auth/login":"/api/auth/register";
+    const data=await accountFetch(endpoint,{method:"POST",body:JSON.stringify({username,password})});
+    currentUser=data.user;
+    const previous=localStorage.getItem("chungchun_last_account");
+    await syncAccountRecords(!previous||previous===currentUser.username);
+    renderAccountUI();
+    $("#authPassword").value="";
+    $("#authModal").classList.remove("show");
+    toast(authMode==="login"?"로그인했어. 묶음을 불러왔어.":"회원가입 완료! 기존 기록도 계정에 저장했어.");
+  }catch(err){
+    message.textContent=err.message||"요청을 처리하지 못했어.";
+    message.className="auth-message error";
+  }finally{
+    submit.disabled=false;submit.textContent=authMode==="login"?"로그인":"계정 만들기";
+  }
+};
+$("#authLogout").onclick=async()=>{
+  try{await accountFetch("/api/auth/logout",{method:"POST",body:"{}"})}catch(e){console.warn("logout:",e)}
+  clearTimeout(accountSyncTimer);
+  currentUser=null;records=[];
+  localStorage.setItem("chungchun_records","[]");
+  localStorage.removeItem("chungchun_last_account");
+  renderCategories();renderBundle();renderAccountUI();
+  $("#authModal").classList.remove("show");
+  toast("로그아웃했어.");
+}
 function escapeHtml(value){
   return String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
 }
@@ -402,5 +526,7 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
 };
 
 renderCategories();renderBundle();renderWall();
-$$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
+renderAccountUI();
+restoreAccountSession();
+$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
 })();
