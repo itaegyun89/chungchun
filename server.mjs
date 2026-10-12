@@ -32,6 +32,28 @@ async function initWall(){
     item JSONB NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS account_users (
+    id TEXT PRIMARY KEY,
+    username TEXT NOT NULL,
+    username_key TEXT NOT NULL UNIQUE,
+    password_salt TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS account_sessions (
+    token_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES account_users(id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`);
+  await pool.query(`CREATE TABLE IF NOT EXISTS account_records (
+    user_id TEXT NOT NULL REFERENCES account_users(id) ON DELETE CASCADE,
+    id TEXT NOT NULL,
+    item JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY(user_id,id)
+  )`);
+  await pool.query("CREATE INDEX IF NOT EXISTS account_sessions_expiry_idx ON account_sessions(expires_at)");
   wallReady=true;
 }
 
@@ -123,14 +145,68 @@ function json(res,status,obj){
   send(res,status,"application/json; charset=utf-8",JSON.stringify(obj));
 }
 
-async function readBody(req){
+async function readBody(req,maxBytes=8_000_000){
   let s="";
   for await(const c of req){
     s+=c;
-    if(s.length>8_000_000)throw new Error("request too large");
+    if(s.length>maxBytes)throw Object.assign(new Error("request too large"),{statusCode:413});
   }
   try{return JSON.parse(s||"{}")}
   catch{throw Object.assign(new Error("invalid JSON"),{statusCode:400})}
+}
+
+function cookieValue(req,name){
+  const raw=String(req.headers.cookie||"");
+  for(const part of raw.split(";")){
+    const i=part.indexOf("=");
+    if(i<0)continue;
+    if(part.slice(0,i).trim()===name)return decodeURIComponent(part.slice(i+1).trim());
+  }
+  return "";
+}
+function sessionCookie(res,token,req){
+  const secure=String(req.headers["x-forwarded-proto"]||"").split(",")[0].trim()==="https"||String(req.headers.host||"").includes("onrender.com");
+  res.setHeader("Set-Cookie",`cc_session=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Lax; Max-Age=2592000${secure?"; Secure":""}`);
+}
+function clearSessionCookie(res,req){
+  const secure=String(req.headers["x-forwarded-proto"]||"").split(",")[0].trim()==="https"||String(req.headers.host||"").includes("onrender.com");
+  res.setHeader("Set-Cookie",`cc_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0${secure?"; Secure":""}`);
+}
+function tokenHash(token){return crypto.createHash("sha256").update(String(token)).digest("hex")}
+function scryptPassword(password,salt){
+  return new Promise((resolve,reject)=>crypto.scrypt(password,salt,64,(err,key)=>err?reject(err):resolve(key.toString("hex"))));
+}
+async function createSession(userId,req,res){
+  const token=crypto.randomBytes(32).toString("base64url");
+  await pool.query("DELETE FROM account_sessions WHERE expires_at < NOW()");
+  await pool.query("INSERT INTO account_sessions(token_hash,user_id,expires_at) VALUES($1,$2,NOW()+INTERVAL '30 days')",[tokenHash(token),userId]);
+  sessionCookie(res,token,req);
+}
+async function sessionUser(req){
+  const token=cookieValue(req,"cc_session");
+  if(!token||!pool)return null;
+  const r=await pool.query(`SELECT u.id,u.username FROM account_sessions s
+    JOIN account_users u ON u.id=s.user_id
+    WHERE s.token_hash=$1 AND s.expires_at>NOW()`,[tokenHash(token)]);
+  return r.rows[0]||null;
+}
+function cleanAccountRecord(item){
+  const id=String(item?.id||"").trim();
+  if(!id||id.length>100)throw Object.assign(new Error("invalid record id"),{statusCode:400});
+  const image=String(item.image||"");
+  if(image&&!isSafeImage(image))throw Object.assign(new Error("invalid image"),{statusCode:400});
+  return {
+    id,
+    category:String(item.category||"").slice(0,50),
+    sub:String(item.sub||"").slice(0,200),
+    question:String(item.question||"").slice(0,300),
+    answer:String(item.answer||"").slice(0,120),
+    image,
+    filter:["normal","bw","warm"].includes(item.filter)?item.filter:"normal",
+    createdAt:String(item.createdAt||""),
+    posted:Boolean(item.posted),
+    ownerToken:String(item.ownerToken||"").slice(0,200)
+  };
 }
 
 function keysEqual(a,b){
@@ -151,6 +227,77 @@ const server=http.createServer(async(req,res)=>{
       wall:{configured:Boolean(pool),ready:wallReady,adminConfigured:Boolean(String(process.env.ADMIN_KEY||"").trim())},
       gemini:geminiConfig()
     });
+  }
+
+  if(u.pathname==="/api/auth/register"&&req.method==="POST"){
+    if(!pool||!wallReady)return json(res,503,{error:"account database is not ready"});
+    try{
+      const body=await readBody(req,16000);
+      const username=String(body.username||"").trim();
+      const usernameKey=username.toLocaleLowerCase("en-US");
+      const password=String(body.password||"");
+      if(!/^[\\p{L}\\p{N}_-]{3,24}$/u.test(username))return json(res,400,{error:"아이디는 한글·영문·숫자·_- 조합 3~24자로 입력해줘."});
+      if(password.length<8||password.length>128)return json(res,400,{error:"비밀번호는 8~128자로 설정해줘."});
+      const id=crypto.randomUUID();
+      const salt=crypto.randomBytes(16).toString("hex");
+      const passwordHash=await scryptPassword(password,salt);
+      await pool.query("INSERT INTO account_users(id,username,username_key,password_salt,password_hash) VALUES($1,$2,$3,$4,$5)",[id,username,usernameKey,salt,passwordHash]);
+      await createSession(id,req,res);
+      return json(res,201,{user:{id,username}});
+    }catch(e){
+      if(e.code==="23505")return json(res,409,{error:"이미 사용 중인 아이디야."});
+      console.error("AUTH REGISTER:",e.message);
+      return json(res,e.statusCode||500,{error:e.statusCode?e.message:"회원가입에 실패했어."});
+    }
+  }
+
+  if(u.pathname==="/api/auth/login"&&req.method==="POST"){
+    if(!pool||!wallReady)return json(res,503,{error:"account database is not ready"});
+    try{
+      const body=await readBody(req,16000);
+      const usernameKey=String(body.username||"").trim().toLocaleLowerCase("en-US");
+      const password=String(body.password||"");
+      const r=await pool.query("SELECT id,username,password_salt,password_hash FROM account_users WHERE username_key=$1",[usernameKey]);
+      if(!r.rowCount)return json(res,401,{error:"아이디 또는 비밀번호를 확인해줘."});
+      const user=r.rows[0];
+      const hash=await scryptPassword(password,user.password_salt);
+      if(!keysEqual(hash,user.password_hash))return json(res,401,{error:"아이디 또는 비밀번호를 확인해줘."});
+      await createSession(user.id,req,res);
+      return json(res,200,{user:{id:user.id,username:user.username}});
+    }catch(e){
+      console.error("AUTH LOGIN:",e.message);
+      return json(res,e.statusCode||500,{error:"로그인에 실패했어."});
+    }
+  }
+
+  if(u.pathname==="/api/auth/me"&&req.method==="GET"){
+    if(!pool||!wallReady)return json(res,503,{error:"account database is not ready"});
+    return json(res,200,{user:await sessionUser(req)});
+  }
+
+  if(u.pathname==="/api/auth/logout"&&req.method==="POST"){
+    const token=cookieValue(req,"cc_session");
+    if(token&&pool)await pool.query("DELETE FROM account_sessions WHERE token_hash=$1",[tokenHash(token)]);
+    clearSessionCookie(res,req);
+    return json(res,200,{ok:true});
+  }
+
+  if(u.pathname==="/api/account/records"&&(req.method==="GET"||req.method==="POST")){
+    if(!pool||!wallReady)return json(res,503,{error:"account database is not ready"});
+    const user=await sessionUser(req);
+    if(!user)return json(res,401,{error:"로그인이 필요해."});
+    if(req.method==="GET"){
+      const r=await pool.query("SELECT item FROM account_records WHERE user_id=$1 ORDER BY created_at ASC",[user.id]);
+      return json(res,200,{records:r.rows.map(x=>x.item)});
+    }
+    const body=await readBody(req,25_000_000);
+    if(!Array.isArray(body.records)||body.records.length>100)return json(res,400,{error:"한 번에 최대 100개까지 저장할 수 있어."});
+    for(const raw of body.records){
+      const item=cleanAccountRecord(raw);
+      await pool.query("INSERT INTO account_records(user_id,id,item,created_at) VALUES($1,$2,$3,COALESCE(NULLIF($4,'')::timestamptz,NOW())) ON CONFLICT(user_id,id) DO UPDATE SET item=EXCLUDED.item,created_at=EXCLUDED.created_at",
+        [user.id,item.id,item,item.createdAt]);
+    }
+    return json(res,200,{ok:true,saved:body.records.length});
   }
 
   if(u.pathname==="/api/questions"&&req.method==="POST"){
