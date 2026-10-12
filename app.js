@@ -455,7 +455,7 @@ function renderWall(){
     <p>${escapeHtml(r.answer)}</p>
   </article>`;
  }).join("");
- $(".wall-film").forEach(el=>makeDraggable(el));
+ $$(".wall-film").forEach(el=>makeDraggable(el));
 }
 function makeDraggable(el){
  let sx=0,sy=0,ox=0,oy=0,drag=false,moved=false;
@@ -535,5 +535,5 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
 renderCategories();renderBundle();renderWall();
 renderAccountUI();
 restoreAccountSession();
-$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
+$$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
 })();
