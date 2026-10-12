@@ -282,13 +282,20 @@ const server=http.createServer(async(req,res)=>{
     return json(res,200,{ok:true});
   }
 
-  if(u.pathname==="/api/account/records"&&(req.method==="GET"||req.method==="POST")){
+  if(u.pathname==="/api/account/records"&&(req.method==="GET"||req.method==="POST"||req.method==="DELETE")){
     if(!pool||!wallReady)return json(res,503,{error:"account database is not ready"});
     const user=await sessionUser(req);
     if(!user)return json(res,401,{error:"로그인이 필요해."});
     if(req.method==="GET"){
       const r=await pool.query("SELECT item FROM account_records WHERE user_id=$1 ORDER BY created_at ASC",[user.id]);
       return json(res,200,{records:r.rows.map(x=>x.item)});
+    }
+    if(req.method==="DELETE"){
+      const body=await readBody(req,16000);
+      const id=String(body.id||"").trim();
+      if(!id||id.length>100)return json(res,400,{error:"invalid record id"});
+      const result=await pool.query("DELETE FROM account_records WHERE user_id=$1 AND id=$2",[user.id,id]);
+      return json(res,200,{ok:true,deleted:Boolean(result.rowCount)});
     }
     const body=await readBody(req,25_000_000);
     if(!Array.isArray(body.records)||body.records.length>100)return json(res,400,{error:"한 번에 최대 100개까지 저장할 수 있어."});
