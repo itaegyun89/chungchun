@@ -1,5 +1,6 @@
 (() => {
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const WALL_API="https://ceongcunmuggeum.onrender.com/api/wall";
 const categories={
  "음식":["맛","중식","일식","양식","기타"],"장소":["대구","부산","서울","일본","미국","기타"],
  "물건":["기기","문구","장난감","기타"],"자연":["하늘","식물","동물","풍경","기타"],
@@ -205,7 +206,7 @@ async function postRecordToWall(id,button){
  button.disabled=true;button.textContent="게시 중...";
  const markPosted=()=>{rec.posted=true;save();if(button){button.disabled=false;button.textContent="게시됨";}};
  try{
-  const r=await fetch("/api/wall?_="+Date.now(),{
+  const r=await fetch(WALL_API+"?_="+Date.now(),{
    method:"POST",
    headers:{"Content-Type":"application/json"},
    body:JSON.stringify({...rec})
@@ -229,7 +230,7 @@ async function postRecordToWall(id,button){
  }catch(e){
   // 네트워크가 응답 전에 끊겨도 서버에는 저장됐을 수 있으므로 한 번 확인한다.
   try{
-   const check=await fetch("/api/wall",{cache:"no-store"});
+   const check=await fetch(WALL_API,{cache:"no-store"});
    const data=await check.json().catch(()=>({}));
    if(check.ok&&Array.isArray(data.items)&&data.items.some(x=>String(x.id)===String(rec.id))){
     window.sharedWall=data.items;sharedWallLoaded=true;markPosted();
@@ -254,7 +255,7 @@ function stopWallPolling(){
 
 function connectWallEvents(){
  if(wallEvents||typeof EventSource==="undefined")return;
- wallEvents=new EventSource("/api/wall/events");
+ wallEvents=new EventSource(WALL_API+"/events");
  wallEvents.addEventListener("wall",e=>{
   try{
    const msg=JSON.parse(e.data);
@@ -287,7 +288,7 @@ async function loadWall(preserveOnError=false){
  wallRequestController=new AbortController();
  const timeout=setTimeout(()=>wallRequestController.abort(),8000);
  try{
-  const r=await fetch("/api/wall?_="+Date.now(),{cache:"no-store",signal:wallRequestController.signal});
+  const r=await fetch(WALL_API+"?_="+Date.now(),{cache:"no-store",signal:wallRequestController.signal});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("wall get "+r.status));
   if(!Array.isArray(d.items))throw new Error("invalid wall response");
@@ -339,7 +340,7 @@ function makeDraggable(el){
    const board=$("#wallBoard");
    item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;
    item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;
-   try{await fetch("/api/wall",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,ownerToken:ownRecord.ownerToken})})}catch{}
+   try{await fetch(WALL_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,ownerToken:ownRecord.ownerToken})})}catch{}
   }
   setTimeout(()=>el.classList.remove("hammering","settling"),550);
  };
@@ -358,7 +359,7 @@ async function openWallDetail(id){
 $("#wallDeleteBtn").onclick=async()=>{
  if(!selectedWallItem||String(records.find(r=>String(r.id)===String(selectedWallItem.id))?.ownerToken||"")!==ownerToken)return;
  try{
-  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
+  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
   if(!r.ok)throw new Error("delete");
   window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(selectedWallItem.id));
   const rec=records.find(x=>String(x.id)===String(selectedWallItem.id));if(rec){rec.posted=false;save();}
@@ -371,7 +372,7 @@ async function developerDeleteAll(){
  const key=developerAdminKey||prompt("개발자 관리자 키를 입력해주세요.");
  if(!key)return;
  try{
-  const r=await fetch("/api/wall",{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
+  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
   developerAdminKey=String(key).trim();sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
