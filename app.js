@@ -63,11 +63,22 @@ async function pushAccountRecords(){
   }
 }
 async function syncAccountRecords(mergeLocal=true){
+  // Retry any deletions that could not reach the account server earlier.
+  let tombstones=[];
+  try{tombstones=JSON.parse(localStorage.getItem("chungchun_deleted_records")||"[]")}catch{}
+  const pending=new Set(Array.isArray(tombstones)?tombstones.map(String):[]);
+  for(const id of pending){
+    try{
+      await accountFetch("/api/account/records",{method:"DELETE",body:JSON.stringify({id})});
+      pending.delete(id);
+    }catch(e){console.warn("pending record deletion:",id,e.message)}
+  }
+  localStorage.setItem("chungchun_deleted_records",JSON.stringify([...pending]));
   const data=await accountFetch("/api/account/records");
-  const remote=Array.isArray(data.records)?data.records:[];
+  const remote=(Array.isArray(data.records)?data.records:[]).filter(r=>!pending.has(String(r.id))&&!tombstones.includes(String(r.id)));
   if(mergeLocal){
     const merged=new Map(remote.map(r=>[String(r.id),r]));
-    records.forEach(r=>merged.set(String(r.id),r));
+    records.filter(r=>!pending.has(String(r.id))&&!tombstones.includes(String(r.id))).forEach(r=>merged.set(String(r.id),r));
     records=[...merged.values()].sort((a,b)=>String(a.createdAt||"").localeCompare(String(b.createdAt||"")));
     await accountFetch("/api/account/records",{method:"POST",body:JSON.stringify({records})});
   }else{
@@ -340,16 +351,29 @@ async function deleteBundleRecord(id,cat,button){
  if(!rec){toast("삭제할 기록을 찾지 못했어.");return}
  if(!confirm("이 사진을 묶음에서 삭제할까?\n게시판에 올린 사진은 게시판에 그대로 남아 있어."))return;
  button.disabled=true;button.textContent="삭제 중...";
+ let remoteDeleted=!currentUser;
  try{
-  if(currentUser)await accountFetch("/api/account/records",{method:"DELETE",body:JSON.stringify({id:String(id)})});
-  records=records.filter(r=>String(r.id)!==String(id));
-  save();
-  renderCategories();renderBundle();openBundle(cat);
-  toast("묶음에서 사진을 삭제했어.");
+  if(currentUser){
+    await accountFetch("/api/account/records",{method:"DELETE",body:JSON.stringify({id:String(id)})});
+    remoteDeleted=true;
+  }
  }catch(e){
-  button.disabled=false;button.textContent="삭제";
-  toast("삭제하지 못했어: "+(e.message||"연결을 확인해줘."));
+  console.warn("account delete failed; saving pending deletion:",e);
+  remoteDeleted=false;
  }
+ // Always remove it from this device immediately. If the account request failed,
+ // keep a tombstone so a later login won't merge the deleted record back in.
+ if(!remoteDeleted){
+  let pending=[];
+  try{pending=JSON.parse(localStorage.getItem("chungchun_deleted_records")||"[]")}catch{}
+  const ids=new Set(Array.isArray(pending)?pending.map(String):[]);
+  ids.add(String(id));
+  localStorage.setItem("chungchun_deleted_records",JSON.stringify([...ids]));
+ }
+ records=records.filter(r=>String(r.id)!==String(id));
+ save();
+ renderCategories();renderBundle();openBundle(cat);
+ toast(remoteDeleted?"묶음에서 사진을 삭제했어.": "이 기기에서는 삭제했어. 계정 동기화는 다음 로그인 때 다시 시도할게.");
 }
 
 async function postRecordToWall(id,button){
