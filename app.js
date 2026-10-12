@@ -1,5 +1,5 @@
 (() => {
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const WALL_API="https://ceongcunmuggeum.onrender.com/api/wall";
 const categories={
  "음식":["맛","중식","일식","양식","기타"],"장소":["대구","부산","서울","일본","미국","기타"],
