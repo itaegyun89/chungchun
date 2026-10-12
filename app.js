@@ -315,16 +315,40 @@ function openBundle(cat){
  const wallIds=new Set((window.sharedWall||[]).map(x=>String(x.id)));
  $("#bundleModalTitle").textContent=cat;
  $("#bundleModalCount").textContent=arr.length+" / 10장";
- $("#bundleCards").innerHTML=arr.map(r=>`<article class="bundle-card">
+ $("#bundleCards").innerHTML=arr.length?arr.map(r=>`<article class="bundle-card">
    <div class="bundle-photo"><img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${escapeHtml(safeImageSrc(r.image))}" alt=""></div>
    <div class="bundle-copy"><small>${escapeHtml(r.question)}</small><strong>${escapeHtml(r.answer)}</strong></div>
-   <button type="button" class="post-one" data-id="${escapeHtml(r.id)}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
- </article>`).join("");
+   <div class="bundle-actions">
+    <button type="button" class="post-one" data-id="${escapeHtml(r.id)}">${wallIds.has(String(r.id))?"게시됨":"게시판에 올리기"}</button>
+    <button type="button" class="delete-record" data-id="${escapeHtml(r.id)}">삭제</button>
+   </div>
+ </article>`).join(""):"<div class='bundle-empty'>이 묶음에는 사진이 없어.</div>";
  $("#bundleModal").classList.add("show");
- $("#bundleCards").onclick=e=>{const b=e.target.closest("button.post-one[data-id]");if(b)postRecordToWall(b.dataset.id,b);};
+ $("#bundleCards").onclick=e=>{
+  const del=e.target.closest("button.delete-record[data-id]");
+  if(del){deleteBundleRecord(del.dataset.id,cat,del);return}
+  const post=e.target.closest("button.post-one[data-id]");
+  if(post)postRecordToWall(post.dataset.id,post);
+ };
 
  if(!sharedWallLoaded&&!wallLoading){
   loadWall(true).then(()=>renderBundleButtons()).catch(()=>{});
+ }
+}
+async function deleteBundleRecord(id,cat,button){
+ const rec=records.find(r=>String(r.id)===String(id));
+ if(!rec){toast("삭제할 기록을 찾지 못했어.");return}
+ if(!confirm("이 사진을 묶음에서 삭제할까?\n게시판에 올린 사진은 게시판에 그대로 남아 있어."))return;
+ button.disabled=true;button.textContent="삭제 중...";
+ try{
+  if(currentUser)await accountFetch("/api/account/records",{method:"DELETE",body:JSON.stringify({id:String(id)})});
+  records=records.filter(r=>String(r.id)!==String(id));
+  save();
+  renderCategories();renderBundle();openBundle(cat);
+  toast("묶음에서 사진을 삭제했어.");
+ }catch(e){
+  button.disabled=false;button.textContent="삭제";
+  toast("삭제하지 못했어: "+(e.message||"연결을 확인해줘."));
  }
 }
 
