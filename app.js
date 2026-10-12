@@ -510,7 +510,7 @@ function renderWall(){
   return `<article class="wall-film" data-id="${id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)">
     <span class="nail"></span><span class="hammer"></span>
     ${image?`<img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
-    <p>${escapeHtml(r.answer)}</p>
+    <p class="wall-question">${escapeHtml(r.question||"질문 없음")}</p><p class="wall-answer">${escapeHtml(r.answer)}</p>
   </article>`;
  }).join("");
  $$(".wall-film").forEach(el=>makeDraggable(el));
