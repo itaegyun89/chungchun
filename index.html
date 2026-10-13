@@ -15,6 +15,7 @@
     <button data-page="record">기록</button>
     <button data-page="bundle">묶음</button>
     <button data-page="wall">벽</button>
+    <button data-page="memory">추억</button>
   </nav>
   <div class="account-actions"><span id="accountStatus">게스트</span><button id="accountBtn" class="account-btn">로그인</button></div>
 </header>
@@ -52,6 +53,12 @@
   <div id="folderGrid" class="folder-grid"></div>
 </section>
 
+<section id="memory" class="page">
+  <div class="page-head"><div><span class="tiny">04 / MEMORY</span><h2>추억</h2></div><span class="counter">RANDOM MEMORY</span></div>
+  <div class="memory-intro"><p>잊고 있던 순간을 한 장 꺼내 봐.</p><button id="drawMemoryBtn" class="black-btn">추억 한 장 뽑기 ↗</button></div>
+  <div id="memoryContent" class="memory-content" aria-live="polite"></div>
+</section>
+
 <section id="wall" class="page">
   <div class="page-head"><div><span class="tiny">03 / WALL</span><h2>벽</h2></div><span class="counter">PUBLIC BOARD</span></div>
   <div class="wall-wrap">
@@ -71,7 +78,7 @@
 </main>
 
 <div class="bottom-nav">
-  <button data-page="record">기록</button><button data-page="bundle">묶음</button><button data-page="wall">벽</button><button data-page="settings">설정</button>
+  <button data-page="record">기록</button><button data-page="bundle">묶음</button><button data-page="memory">추억</button><button data-page="wall">벽</button><button data-page="settings">설정</button>
 </div>
 
 <div id="editor" class="modal">
@@ -100,6 +107,6 @@
  <div id="appDialog" class="modal app-dialog"><div class="modal-card app-dialog-card" role="dialog" aria-modal="true"><span class="tiny">CHUNGCHUN MUKKEUM</span><h3 id="appDialogTitle"></h3><p id="appDialogMessage" class="app-dialog-message"></p><input id="appDialogInput" class="app-dialog-input" maxlength="120" autocomplete="off"><div class="app-dialog-actions"><button type="button" class="outline-btn" id="appDialogCancel">취소</button><button type="button" class="black-btn" id="appDialogConfirm">확인</button></div></div></div>
  <div id="toast"></div>
 <script src="/api.js"></script>
-<script src="/app.js?v=bundlethumbfilter1"></script>
+<script src="/app.js?v=memorytab1"></script>
 </body>
 </html>
