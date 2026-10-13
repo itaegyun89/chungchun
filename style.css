@@ -150,3 +150,48 @@ main{max-width:1240px;margin:auto}.page{display:none;min-height:calc(100vh - 68p
 /* Drag stability: completed entrance animation must not override transforms */
 .film{animation-fill-mode:none;}
 .film.dragging{animation:none!important;cursor:grabbing;will-change:left,top;}
+
+/* Public wall: fixed grid rows, no dragging, natural vertical scrolling */
+.wall-board{
+  height:auto!important;
+  min-height:calc(100vh - 245px);
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(155px,1fr));
+  grid-auto-rows:minmax(255px,auto);
+  align-content:start;
+  justify-items:center;
+  align-items:start;
+  gap:18px 12px;
+  padding:22px 18px 28px;
+  overflow:visible;
+  box-sizing:border-box;
+}
+.wall-film{
+  position:relative!important;
+  left:auto!important;
+  top:auto!important;
+  width:min(100%,180px);
+  max-width:180px;
+  box-sizing:border-box;
+  cursor:pointer;
+  touch-action:manipulation;
+  transform:rotate(var(--film-rotation,0deg));
+  transition:box-shadow .18s ease,transform .18s ease;
+}
+.wall-film:hover{
+  z-index:2;
+  transform:translateY(-3px) rotate(0deg);
+  box-shadow:0 16px 28px rgba(0,0,0,.2);
+}
+.wall-film img,.wall-film .wall-placeholder{height:150px;object-fit:cover}
+.wall-film .nail,.wall-film .hammer{pointer-events:none}
+@media(max-width:850px){
+  .wall-board{min-height:calc(100vh - 220px);grid-template-columns:repeat(auto-fill,minmax(135px,1fr));grid-auto-rows:minmax(235px,auto);gap:14px 9px;padding:16px 10px 22px}
+  .wall-film{width:min(100%,155px)}
+  .wall-film img,.wall-film .wall-placeholder{height:120px}
+}
+@media(max-width:420px){
+  .wall-board{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(220px,auto);gap:12px 8px;padding:12px 8px 20px}
+  .wall-film{width:min(100%,145px)}
+  .wall-film img,.wall-film .wall-placeholder{height:112px}
+}
