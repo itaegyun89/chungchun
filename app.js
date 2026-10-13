@@ -265,41 +265,46 @@ function renderQuestions(){
 }
 function makeQuestionFilmDraggable(el){
  let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0,pointerId=null;
- el.addEventListener("pointerdown",e=>{
-  if(e.button!==undefined&&e.button!==0)return;
-  e.preventDefault();
-  e.stopPropagation();
-  const stage=$("#questionStage");
-  startX=e.clientX;startY=e.clientY;
-  startLeft=el.offsetLeft;startTop=el.offsetTop;
-  dragging=true;moved=false;pointerId=e.pointerId;
-  el.setPointerCapture(e.pointerId);
-  el.classList.add("dragging");
-  el.style.zIndex=30;
-  el.style.transition="none";
-  el.style.left=startLeft+"px";
-  el.style.top=startTop+"px";
- });
- el.addEventListener("pointermove",e=>{
+ const stage=$("#questionStage");
+ const onMove=e=>{
   if(!dragging||e.pointerId!==pointerId)return;
   e.preventDefault();
-  const stage=$("#questionStage").getBoundingClientRect();
+  const rect=stage.getBoundingClientRect();
   const dx=e.clientX-startX,dy=e.clientY-startY;
   if(Math.hypot(dx,dy)>5)moved=true;
-  el.style.left=Math.max(0,Math.min(stage.width-el.offsetWidth,startLeft+dx))+"px";
-  el.style.top=Math.max(0,Math.min(stage.height-el.offsetHeight,startTop+dy))+"px";
- });
- const end=e=>{
+  const maxLeft=Math.max(0,rect.width-el.offsetWidth);
+  const maxTop=Math.max(0,rect.height-el.offsetHeight);
+  el.style.left=Math.max(0,Math.min(maxLeft,startLeft+dx))+"px";
+  el.style.top=Math.max(0,Math.min(maxTop,startTop+dy))+"px";
+ };
+ const onEnd=e=>{
   if(!dragging||e.pointerId!==pointerId)return;
   e.preventDefault();
   dragging=false;
-  try{el.releasePointerCapture(e.pointerId)}catch{}
+  window.removeEventListener("pointermove",onMove);
+  window.removeEventListener("pointerup",onEnd);
+  window.removeEventListener("pointercancel",onEnd);
   el.classList.remove("dragging");
   el.style.transition="";
   if(!moved)openEditor(el.dataset.q);
  };
- el.addEventListener("pointerup",end);
- el.addEventListener("pointercancel",end);
+ el.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined&&e.button!==0)return;
+  e.preventDefault();
+  e.stopPropagation();
+  startX=e.clientX;startY=e.clientY;
+  startLeft=el.offsetLeft;startTop=el.offsetTop;
+  dragging=true;moved=false;pointerId=e.pointerId;
+  el.style.animation="none";
+  el.classList.add("dragging");
+  el.style.zIndex=50;
+  el.style.transition="none";
+  el.style.left=startLeft+"px";
+  el.style.top=startTop+"px";
+  window.addEventListener("pointermove",onMove,{passive:false});
+  window.addEventListener("pointerup",onEnd,{passive:false});
+  window.addEventListener("pointercancel",onEnd,{passive:false});
+ });
 }
 function openEditor(q){
  selectedQuestion=q;photo="";filter="normal";$("#answerInput").value="";
