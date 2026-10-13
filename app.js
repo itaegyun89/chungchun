@@ -362,7 +362,7 @@ function renderBundle(){
  $("#bundleTotal").textContent=records.length+"장";
  const groups={};records.forEach(r=>(groups[r.category]??=[]).push(r));
  const entries=Object.entries(groups);
- $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
+ $("#folderGrid").innerHTML=entries.length?entries.map(([c,a])=>`<button class="folder" data-cat="${c}"><div class="folder-cover">${safeImageSrc(a.at(-1).image)?`<img class="filter-${["normal","bw","warm"].includes(a.at(-1).filter)?a.at(-1).filter:"normal"}" src="${safeImageSrc(a.at(-1).image)}" alt="">`:""}</div><div class="folder-info"><strong>${c}</strong><small>${a.length} / 10장</small></div></button>`).join(""):"<div class='settings-card'>아직 기록이 없어.</div>";
  $("#folderGrid").onclick=e=>{
   const b=e.target.closest(".folder[data-cat]");
   if(b)openBundle(b.dataset.cat);
