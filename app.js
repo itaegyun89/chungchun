@@ -230,8 +230,9 @@ function appDialog(title,message,mode="confirm",placeholder="",okText="확인",d
  });
 }
 function page(id){
-  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
+  if(id==="memory")renderMemory(true);
   if(id==="wall"){
     loadWall(true);
     connectWallEvents();
@@ -357,6 +358,29 @@ $("#printBtn").onclick=async()=>{
   renderCategories();renderBundle();toast("폴라로이드가 완성되었습니다.");
  },1700);
 };
+
+
+function renderMemory(draw=false){
+ const host=$("#memoryContent");
+ if(!records.length){
+  host.innerHTML="<div class='memory-empty'><span class='tiny'>NO FILMS YET</span><h3>아직 꺼내 볼 추억이 없어.</h3><p>사진과 한 줄을 기록하면 여기서 랜덤으로 다시 만날 수 있어.</p><button class='black-btn' data-page='record'>첫 기록 남기기</button></div>";
+  host.querySelector("[data-page]")?.addEventListener("click",()=>page("record"));
+  return;
+ }
+ if(!draw&&host.dataset.recordId&&records.some(r=>String(r.id)===host.dataset.recordId))return;
+ let choices=records;
+ if(records.length>1&&host.dataset.recordId)choices=records.filter(r=>String(r.id)!==host.dataset.recordId);
+ const rec=choices[Math.floor(Math.random()*choices.length)];
+ host.dataset.recordId=String(rec.id);
+ const image=safeImageSrc(rec.image);
+ const date=rec.createdAt?new Date(rec.createdAt):null;
+ const dateText=date&&!Number.isNaN(date.getTime())?date.toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric"}):"날짜 미상";
+ host.innerHTML=`<article class="memory-card">
+   <div class="memory-photo-wrap">${image?`<img class="filter-${["normal","bw","warm"].includes(rec.filter)?rec.filter:"normal"}" src="${escapeHtml(image)}" alt="">`:"<div class='memory-photo-placeholder'></div>"}</div>
+   <div class="memory-card-copy"><span class="tiny">${escapeHtml(rec.category||"기록")} · ${escapeHtml(dateText)}</span><h3>${escapeHtml(rec.question||"질문 없음")}</h3><p>${escapeHtml(rec.answer||"")}</p><span class="memory-caption">우리의 청춘이 담긴 페이지</span></div>
+ </article>`;
+}
+$("#drawMemoryBtn").onclick=()=>renderMemory(true);
 
 function renderBundle(){
  $("#bundleTotal").textContent=records.length+"장";
