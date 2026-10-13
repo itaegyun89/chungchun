@@ -561,19 +561,13 @@ function renderWall(){
    </article>`;
   }).join("");
   $$(".wall-film").forEach(el=>{
-   el.onclick=()=>{
-    const now=Date.now(),id=String(el.dataset.id);
-    if(lastWallTap.id===id&&now-lastWallTap.time<420){
-     lastWallTap={id:"",time:0};
-     openWallDetail(id);
-    }else lastWallTap={id,time:now};
-   };
+   el.onclick=()=>openWallDetail(String(el.dataset.id));
   });
 }
 async function openWallDetail(id){
  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
  selectedWallItem=item;
- $("#wallDetailPhoto").innerHTML=safeImageSrc(item.image)?'<img src="'+safeImageSrc(item.image)+'" alt="">':'<div class="wall-detail-placeholder"></div>';
+ $("#wallDetailPhoto").innerHTML=safeImageSrc(item.image)?'<img class="filter-'+(["normal","bw","warm"].includes(item.filter)?item.filter:"normal")+'" src="'+safeImageSrc(item.image)+'" alt="">':'<div class="wall-detail-placeholder"></div>';
  $("#wallDetailQuestion").textContent=item.question||"";
  $("#wallDetailAnswer").textContent=item.answer||"";
  const mine=String(records.find(r=>String(r.id)===String(item.id))?.ownerToken||"")===ownerToken;
