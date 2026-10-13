@@ -7,10 +7,50 @@ const categories={
  "취미":["음악","운동","그림","코딩","기타"],"게임":["PC","모바일","콘솔","기타"],
  "일상":["집","등교","외출","주말","기타"],"학교":["교실","급식","운동장","기타"]
 };
-const questions=[
-"가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
-"처음 접하게 된 계기는?","가장 기억에 남는 것은?","이것이 나에게 특별한 이유는?"
-];
+const questions={
+ "음식":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
+  "처음 접했을 때, 나는 몇 살이었는가?","처음 접하게 된 계기는?","가장 기억에 남는 것은?","이것이 나에게 특별한 이유는?",
+  "이 음식의 맛을 다른 음식에 비유한다면?","이 음식에서 가장 예상 밖이었던 점은?"
+ ],
+ "장소":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이곳에 별명을 붙인다면?",
+  "처음 이곳에 왔을 때, 나는 몇 살이었는가?","처음 오게 된 계기는?","가장 기억에 남는 것은?","이곳이 나에게 특별한 이유는?",
+  "이 장소에서 가장 오래 머물고 싶은 곳은 어디인가?","이 장소에서 꼭 해보고 싶은 것은?"
+ ],
+ "물건":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
+  "처음 접했을 때, 나는 몇 살이었는가?","처음 갖게 된 계기는?","가장 기억에 남는 것은?","이 물건이 나에게 특별한 이유는?",
+  "이 물건이 없어진다면 가장 아쉬울 것은?","이 물건을 가장 오래 사용한 기간은 약 얼마인가?"
+ ],
+ "자연":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
+  "처음 본 때, 나는 몇 살이었는가?","처음 보게 된 계기는?","가장 기억에 남는 것은?","이 자연이 나에게 특별한 이유는?",
+  "이 자연에서 가장 독특한 모양은?","이 자연과 관련된 가장 기억에 남는 추억은?"
+ ],
+ "취미":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이것에 별명을 붙인다면?",
+  "처음 접했을 때, 나는 몇 살이었는가?","처음 알게 된 계기는?","이 취미를 하면서 가장 기억에 남는 것은?","이 취미가 나에게 특별한 이유는?",
+  "이 취미를 하면서 가장 뿌듯했던 순간은?","이 취미를 하면서 생긴 습관은?"
+ ],
+ "게임":[
+  "가장 인상적인 점은?","이 게임에서 가장 기억에 남는 장면은?","이 게임에서 가장 좋아하는 캐릭터는?",
+  "이 게임을 처음 플레이했을 때, 나는 몇 살이었는가?","이 게임을 시작하게 된 계기는?","이 게임에서 가장 어려웠던 것은?",
+  "이 게임에서 가장 자주 사용하는 것은?","이 게임을 하면서 가장 많이 배운 것은?","이 게임을 한 문장으로 소개한다면?",
+  "이 게임을 그만두기 어려운 이유는?"
+ ],
+ "일상":[
+  "일상에서 가장 익숙한 것은?","일상에서 가장 자주 하는 행동은?","일상에서 나도 모르게 생긴 습관은?",
+  "일상에서 없으면 불편할 것 같은 것은?","일상에서 가장 사소하지만 좋아하는 것은?","일상에서 가장 편안함을 느끼는 순간은?",
+  "일상에서 가장 자주 보는 것은?","일상에서 가장 자주 듣는 소리는?","일상에서 나를 웃게 만드는 것은?",
+  "일상에 새롭게 생겼으면 하는 것은?"
+ ],
+ "학교":[
+  "가장 눈에 띄는 것은?","가장 마음에 드는 부분은?","가장 인상적인 점은?","이곳에 별명을 붙인다면?",
+  "처음 이 학교에 왔을 때, 나는 몇 살이었는가?","처음 기억에 남은 계기는?","가장 기억에 남는 것은?","이곳이 나에게 특별한 이유는?",
+  "학교에서 가장 좋아하는 공간은?","학교에서 가장 기억에 남는 순간은?"
+ ]
+};
 let records=[];
 try{
   const parsed=JSON.parse(localStorage.getItem("chungchun_records")||"[]");
@@ -217,10 +257,11 @@ function openCategory(cat){
 async function toggleSub(b){let sub=b.dataset.sub;if(sub==="기타"&&!selectedSubs.includes(sub)){const custom=await appDialog("세부 카테고리 추가","나를 나타내는 세부 카테고리를 입력해 줘.","prompt","예: 나만의 취향","추가하기");if(!custom)return;sub=custom;b.dataset.sub=sub;b.textContent="#"+sub}if(selectedSubs.includes(sub)){selectedSubs=selectedSubs.filter(x=>x!==sub);b.classList.remove("active")}else if(selectedSubs.length<3){selectedSubs.push(sub);b.classList.add("active")}else{toast("세부 카테고리는 최대 3개까지 선택할 수 있습니다.");return}renderTags();renderQuestions()}
 function renderTags(){$("#selectedTags").innerHTML=selectedSubs.map(x=>`<span>#${escapeHtml(x)}</span>`).join("")}
 function renderQuestions(){
- const qs=[...questions];
- const pos=[[8,8],[35,5],[63,13],[20,38],[52,42],[74,50],[5,67],[39,70]];
- $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${[-4,3,-2,4,-3,2,-4,3][i]}deg" data-q="${escapeHtml(q)}"><div class="film-photo"></div><q>${escapeHtml(q)}</q><small>${String(i+1).padStart(2,"0")} / ${escapeHtml(selectedSubs.join(" · ")||selectedCategory)}</small></button>`).join("");
- $$(".film").forEach(makeQuestionFilmDraggable);
+ const qs=[...(questions[selectedCategory]||questions["일상"])];
+ const pos=[[8,8],[35,5],[63,13],[20,38],[52,42],[74,50],[5,67],[39,70],[59,72],[22,18]];
+ const rotations=[-4,3,-2,4,-3,2,-4,3,-1,2];
+ $("#questionStage").innerHTML=qs.map((q,i)=>`<button type="button" class="film" style="left:${pos[i][0]}%;top:${pos[i][1]}%;--r:${rotations[i]}deg" data-q="${escapeHtml(q)}"><div class="film-photo"></div><q>${escapeHtml(q)}</q><small>${String(i+1).padStart(2,"0")} / ${escapeHtml(selectedSubs.join(" · ")||selectedCategory)}</small></button>`).join("");
+ $(".film").forEach(makeQuestionFilmDraggable);
 }
 function makeQuestionFilmDraggable(el){
  let dragging=false,moved=false,startX=0,startY=0,startLeft=0,startTop=0,pointerId=null;
@@ -585,7 +626,7 @@ $("#aiQuestionsBtn").onclick=generateAI;$("#aiGenerateAgain").onclick=runAI;$("#
 // API 호출은 이 함수 하나만 담당. 실패해도 디자인/기록 기능과 분리되어 있음.
 window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
  try{
-  const data=await ChungChunAPI.generateQuestions({category,subcategory:sub,count:5,existing:questions,instruction});
+  const data=await ChungChunAPI.generateQuestions({category,subcategory:sub,count:5,existing:(questions[selectedCategory]||[]),instruction});
   if(!Array.isArray(data.questions)||!data.questions.length)throw new Error("empty questions");return data.questions;
  }catch(e){console.warn("question API:",e);toast("질문 API 연결을 확인해줘");return []}
 };
