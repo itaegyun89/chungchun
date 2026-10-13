@@ -230,7 +230,7 @@ function appDialog(title,message,mode="confirm",placeholder="",okText="확인",d
  });
 }
 function page(id){
-  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
   if(id==="memory")renderMemory(true);
   if(id==="wall"){
@@ -649,5 +649,5 @@ renderAccountUI();
 restoreAccountSession();
 $(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
 // Explicitly bind the new memory navigation after all generic navigation handlers.
-$("[data-page=\"memory\"]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();page("memory")}));
+$$("[data-page=\"memory\"]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();page("memory")}));
 })();
