@@ -195,3 +195,8 @@ main{max-width:1240px;margin:auto}.page{display:none;min-height:calc(100vh - 68p
   .wall-film{width:min(100%,145px)}
   .wall-film img,.wall-film .wall-placeholder{height:112px}
 }
+
+/* Preserve the selected film filter in the enlarged detail view */
+.wall-detail-photo img.filter-normal{filter:none}
+.wall-detail-photo img.filter-bw{filter:grayscale(1) contrast(1.05)}
+.wall-detail-photo img.filter-warm{filter:sepia(.28) saturate(1.2) hue-rotate(-8deg) brightness(1.04)}
