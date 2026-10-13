@@ -549,36 +549,26 @@ async function loadWall(preserveOnError=false){
  }
 }
 function renderWall(){
- const arr=(window.sharedWall||[]);
- $("#wallBoard").innerHTML=arr.map((r,i)=>{
-  const image=safeImageSrc(r.image);
-  const id=escapeHtml(r.id);
-  return `<article class="wall-film" data-id="${id}" style="left:${Number.isFinite(Number(r.x))?Number(r.x):8+(i*17)%78}%;top:${Number.isFinite(Number(r.y))?Number(r.y):8+(i*23)%76}%;transform:rotate(${Number.isFinite(Number(r.rotation))?Number(r.rotation):[-3,2,-2,3,-1,2][i%6]}deg)">
-    <span class="nail"></span><span class="hammer"></span>
-    ${image?`<img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
-    <p class="wall-question">${escapeHtml(r.question||"질문 없음")}</p><p class="wall-answer">${escapeHtml(r.answer)}</p>
-  </article>`;
- }).join("");
- $$(".wall-film").forEach(el=>makeDraggable(el));
-}
-function makeDraggable(el){
- let sx=0,sy=0,ox=0,oy=0,drag=false,moved=false;
- el.onpointerdown=e=>{drag=true;moved=false;el.setPointerCapture(e.pointerId);sx=e.clientX;sy=e.clientY;const r=el.getBoundingClientRect(),b=$("#wallBoard").getBoundingClientRect();ox=r.left-b.left;oy=r.top-b.top;el.style.zIndex=30};
- el.onpointermove=e=>{if(!drag)return;const dx=e.clientX-sx,dy=e.clientY-sy;if(Math.hypot(dx,dy)>6)moved=true;const b=$("#wallBoard").getBoundingClientRect();el.style.left=Math.max(0,Math.min(b.width-el.offsetWidth,ox+dx))+"px";el.style.top=Math.max(0,Math.min(b.height-el.offsetHeight,oy+dy))+"px"};
- el.onpointerup=async e=>{
-  if(!drag)return;drag=false;try{el.releasePointerCapture(e.pointerId)}catch{}
-  if(!moved){const now=Date.now(),id=String(el.dataset.id);if(lastWallTap.id===id&&now-lastWallTap.time<420){lastWallTap={id:"",time:0};openWallDetail(id)}else lastWallTap={id,time:now}}else lastWallTap={id:"",time:0};
-  el.classList.add("hammering","settling");
-  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(el.dataset.id));
-  const ownRecord=records.find(x=>String(x.id)===String(el.dataset.id));
-  if(item&&ownRecord){
-   const board=$("#wallBoard");
-   item.x=(el.offsetLeft/Math.max(1,board.clientWidth))*100;
-   item.y=(el.offsetTop/Math.max(1,board.clientHeight))*100;
-   try{await fetch(WALL_API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...item,ownerToken:ownRecord.ownerToken})})}catch{}
-  }
-  setTimeout(()=>el.classList.remove("hammering","settling"),550);
- };
+  const arr=(window.sharedWall||[]);
+  $("#wallBoard").innerHTML=arr.map((r,i)=>{
+   const image=safeImageSrc(r.image);
+   const id=escapeHtml(r.id);
+   const rotation=[-2,1.5,-1.5,2,-.5,1][i%6];
+   return `<article class="wall-film" data-id="${id}" style="--film-rotation:${rotation}deg">
+     <span class="nail"></span><span class="hammer"></span>
+     ${image?`<img class="filter-${["normal","bw","warm"].includes(r.filter)?r.filter:"normal"}" src="${image}" alt="">`:"<div class='wall-placeholder'></div>"}
+     <p class="wall-question">${escapeHtml(r.question||"질문 없음")}</p><p class="wall-answer">${escapeHtml(r.answer)}</p>
+   </article>`;
+  }).join("");
+  $$(".wall-film").forEach(el=>{
+   el.onclick=()=>{
+    const now=Date.now(),id=String(el.dataset.id);
+    if(lastWallTap.id===id&&now-lastWallTap.time<420){
+     lastWallTap={id:"",time:0};
+     openWallDetail(id);
+    }else lastWallTap={id,time:now};
+   };
+  });
 }
 async function openWallDetail(id){
  const item=(window.sharedWall||[]).find(x=>String(x.id)===String(id));if(!item)return;
