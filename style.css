@@ -145,3 +145,8 @@ main{max-width:1240px;margin:auto}.page{display:none;min-height:calc(100vh - 68p
 @media(prefers-reduced-motion:reduce){
   .film,.page.active{animation:none;transition:none}
 }
+
+
+/* Drag stability: completed entrance animation must not override transforms */
+.film{animation-fill-mode:none;}
+.film.dragging{animation:none!important;cursor:grabbing;will-change:left,top;}
