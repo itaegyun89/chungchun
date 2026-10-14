@@ -359,3 +359,14 @@ main{max-width:1240px;margin:auto}.page{display:none;min-height:calc(100vh - 68p
   .wall-film .wall-question { font-size: 9px; }
   .wall-film .wall-answer { font-size: 10px; }
 }
+
+
+/* Keep linked text within the monochrome visual identity */
+a, a:visited, a:hover, a:active {
+  color: var(--ink);
+}
+
+/* The homepage Polaroid photo should follow the outer frame's tilt */
+.sample-photo {
+  transform: none;
+}
