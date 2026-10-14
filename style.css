@@ -370,3 +370,67 @@ a, a:visited, a:hover, a:active {
 .sample-photo {
   transform: none;
 }
+
+
+/* Simplified first screen: remove decorative film and keep the main action prominent */
+#home {
+  display: none;
+}
+#home.active {
+  display: block;
+}
+#home .home-grid {
+  min-height: calc(100svh - 230px);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  justify-items: center;
+  gap: 0;
+  text-align: center;
+}
+#home .home-copy {
+  width: min(100%, 760px);
+  padding: 20px 0;
+}
+#home .home-copy h1 {
+  font-size: clamp(76px, 12vw, 142px);
+  line-height: .95;
+  margin: 20px 0 24px;
+  letter-spacing: -.09em;
+}
+#home .home-copy p {
+  margin-bottom: 34px;
+  font-size: 12px;
+  letter-spacing: .08em;
+}
+#home .home-copy .black-btn {
+  min-width: 220px;
+  min-height: 62px;
+  padding: 18px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 650;
+}
+@media (max-width: 600px) {
+  #home .home-grid {
+    min-height: calc(100svh - 190px);
+    padding-top: 0;
+    gap: 0;
+  }
+  #home .home-copy {
+    padding: 12px 0;
+  }
+  #home .home-copy h1 {
+    font-size: clamp(58px, 16vw, 82px);
+    line-height: 1;
+    margin: 16px 0 18px;
+  }
+  #home .home-copy p {
+    font-size: 10px;
+    margin-bottom: 28px;
+  }
+  #home .home-copy .black-btn {
+    width: min(100%, 320px);
+    min-height: 58px;
+    font-size: 16px;
+  }
+}
