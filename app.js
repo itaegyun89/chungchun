@@ -236,11 +236,11 @@ function appDialog(title,message,mode="confirm",placeholder="",okText="확인",d
 function page(id,addHistory=true){
   const target=$("#"+id);
   if(!target||!target.classList.contains("page"))return;
-  const current=$(".page").find(x=>x.classList.contains("active"))?.id;
+  const current=$$(".page").find(x=>x.classList.contains("active"))?.id;
   if(addHistory&&current!==id){
     try{history.pushState({chungchunPage:id},"","#"+id)}catch{}
   }
-  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
   if(id==="home2"){if(!$("#memoryContent").dataset.recordId)renderMemory(true);else renderLauncherMemory();}
   if(id==="memory")renderMemory(true);
@@ -252,14 +252,14 @@ function page(id,addHistory=true){
     stopWallPolling();
   }
 }
-const initialPage=$(".page").find(x=>x.classList.contains("active"))?.id||"home";
+const initialPage=$$(".page").find(x=>x.classList.contains("active"))?.id||"home";
 try{history.replaceState({chungchunPage:initialPage},"","#"+initialPage)}catch{}
 window.addEventListener("popstate",event=>{
   const id=event.state?.chungchunPage;
   if(id&&$("#"+id)?.classList.contains("page"))page(id,false);
   else page("home",false);
 });
-$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
+$$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
 
 function renderCategories(){
  $("#categoryGrid").innerHTML=Object.keys(categories).map((c,i)=>`<button class="cat" data-cat="${c}"><small>0${i+1}</small><strong>${c}</strong><span>${records.filter(r=>r.category===c).length}장</span></button>`).join("");
