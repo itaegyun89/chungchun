@@ -600,13 +600,17 @@ async function openWallDetail(id){
  $("#wallDetailPhoto").innerHTML=safeImageSrc(item.image)?'<img class="filter-'+(["normal","bw","warm"].includes(item.filter)?item.filter:"normal")+'" src="'+safeImageSrc(item.image)+'" alt="">':'<div class="wall-detail-placeholder"></div>';
  $("#wallDetailQuestion").textContent=item.question||"";
  $("#wallDetailAnswer").textContent=item.answer||"";
- const mine=String(records.find(r=>String(r.id)===String(item.id))?.ownerToken||"")===ownerToken;
+ const localRecord=records.find(r=>String(r.id)===String(item.id));
+  const mine=!!localRecord && String(localRecord.ownerToken||ownerToken)===ownerToken;
  $("#wallDeleteBtn").style.display=mine?"inline-flex":"none";
  $("#wallOwnerHint").textContent=mine?"내가 올린 필름":"게시자가 아닌 필름";
  $("#wallDetailModal").classList.add("show");
 }
 $("#wallDeleteBtn").onclick=async()=>{
- if(!selectedWallItem||String(records.find(r=>String(r.id)===String(selectedWallItem.id))?.ownerToken||"")!==ownerToken)return;
+ if(!selectedWallItem)return;
+  const localRecord=records.find(r=>String(r.id)===String(selectedWallItem.id));
+  if(!localRecord||String(localRecord.ownerToken||ownerToken)!==ownerToken)return;
+  if(!localRecord.ownerToken){localRecord.ownerToken=ownerToken;save(false);}
  try{
   const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:selectedWallItem.id,ownerToken})});
   if(!r.ok)throw new Error("delete");
