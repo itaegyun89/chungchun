@@ -617,25 +617,35 @@ $("#wallDeleteBtn").onclick=async()=>{
 };
 $("#resetWall").onclick=loadWall;
 let developerAdminKey=sessionStorage.getItem("chungchun_admin_key")||"";
-async function developerDeleteAll(){
- const key=developerAdminKey||await appDialog("관리자 인증","개발자 관리자 키를 입력해 줘.","prompt","관리자 키","인증하기");
+async function developerDeleteSelected(){
+ const key=developerAdminKey||await appDialog("개발자 인증","개발자 관리자 키를 입력해 줘.","prompt","관리자 키","인증하기");
  if(!key)return;
  try{
-  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey:String(key).trim()})});
+  const listResponse=await fetch(WALL_API);
+  if(!listResponse.ok)throw new Error("게시물 목록을 불러오지 못했어.");
+  const payload=await listResponse.json();
+  const list=Array.isArray(payload)?payload:(payload.items||[]);
+  if(!list.length){toast("삭제할 게시물이 없어.");return}
+  const menu=list.map((item,i)=>`${i+1}. ${String(item.question||"질문 없음").slice(0,48)} — ${String(item.answer||"답변 없음").slice(0,48)}`).join("\\n");
+  const choice=await appDialog("게시물 선택","삭제할 번호를 입력해 줘.\\n\\n"+menu,"prompt","예: 1","선택하기");
+  if(!choice)return;
+  const index=Number(String(choice).trim())-1;
+  if(!Number.isInteger(index)||index<0||index>=list.length){toast("목록에 있는 번호를 입력해 줘.");return}
+  const target=list[index];
+  const confirm=await appDialog("삭제 확인",`이 게시물을 삭제할까?\\n\\n${String(target.question||"질문 없음")}\\n${String(target.answer||"답변 없음")}`,"confirm");
+  if(!confirm)return;
+  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:target.id,adminKey:String(key).trim()})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
   developerAdminKey=String(key).trim();sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
-  window.sharedWall=[];renderWall();toast("벽의 모든 게시물을 삭제했어.");
-  }catch(e){
-   if(/invalid admin key|admin key is not configured/i.test(e.message)){
-     sessionStorage.removeItem("chungchun_admin_key");
-     developerAdminKey="";
-   }
-   toast("개발자 작업 실패: "+e.message);
+  window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(target.id));
+  renderWall();toast("선택한 게시물만 삭제했어.");
+ }catch(e){
+  if(/invalid admin key|admin key is not configured/i.test(e.message)){sessionStorage.removeItem("chungchun_admin_key");developerAdminKey=""}
+  toast("개발자 작업 실패: "+e.message);
  }
 }
-$("#developerWallBtn").onclick=developerDeleteAll;
-
+$("#developerWallBtn").onclick=developerDeleteSelected;
 
 function applyTheme(theme){
  const allowed=["light","dark","minecraft"];
