@@ -626,18 +626,29 @@ async function developerDeleteSelected(){
   const payload=await listResponse.json();
   const list=Array.isArray(payload)?payload:(payload.items||[]);
   if(!list.length){toast("삭제할 게시물이 없어.");return}
-  const menu=list.map((item,i)=>`${i+1}. ${String(item.question||"질문 없음").slice(0,48)} — ${String(item.answer||"답변 없음").slice(0,48)}`).join("\\n");
-  const choice=await appDialog("게시물 선택","삭제할 번호를 입력해 줘.\\n\\n"+menu,"prompt","예: 1","선택하기");
+  const menu=list.map((item,i)=>(i+1)+". "+String(item.question||"질문 없음").slice(0,48)+" — "+String(item.answer||"답변 없음").slice(0,48)).join("\n");
+  const choice=await appDialog("게시물 관리","삭제할 게시물 번호를 입력해 줘.\n\n전체 삭제는 ALL 입력\n\n"+menu,"prompt","번호 또는 ALL","선택하기");
   if(!choice)return;
-  const index=Number(String(choice).trim())-1;
-  if(!Number.isInteger(index)||index<0||index>=list.length){toast("목록에 있는 번호를 입력해 줘.");return}
+  const selected=String(choice).trim();
+  const adminKey=String(key).trim();
+  if(selected.toLowerCase()==="all"){
+   const confirm=await appDialog("전체 삭제 확인","정말 게시판의 게시물 "+list.length+"개를 전부 삭제할까? 이 작업은 되돌릴 수 없어.","confirm","","전체 삭제",true);
+   if(!confirm)return;
+   const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({all:true,adminKey})});
+   const d=await r.json().catch(()=>({}));
+   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
+   developerAdminKey=adminKey;sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
+   window.sharedWall=[];renderWall();toast("게시판 전체를 삭제했어.");return;
+  }
+  const index=Number(selected)-1;
+  if(!Number.isInteger(index)||index<0||index>=list.length){toast("목록 번호 또는 ALL을 입력해 줘.");return}
   const target=list[index];
-  const confirm=await appDialog("삭제 확인",`이 게시물을 삭제할까?\\n\\n${String(target.question||"질문 없음")}\\n${String(target.answer||"답변 없음")}`,"confirm");
+  const confirm=await appDialog("삭제 확인","이 게시물을 삭제할까?\n\n"+String(target.question||"질문 없음")+"\n"+String(target.answer||"답변 없음"),"confirm","","삭제하기",true);
   if(!confirm)return;
-  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:target.id,adminKey:String(key).trim()})});
+  const r=await fetch(WALL_API,{method:"DELETE",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:target.id,adminKey})});
   const d=await r.json().catch(()=>({}));
   if(!r.ok)throw new Error(d.error||("HTTP "+r.status));
-  developerAdminKey=String(key).trim();sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
+  developerAdminKey=adminKey;sessionStorage.setItem("chungchun_admin_key",developerAdminKey);
   window.sharedWall=(window.sharedWall||[]).filter(x=>String(x.id)!==String(target.id));
   renderWall();toast("선택한 게시물만 삭제했어.");
  }catch(e){
