@@ -463,3 +463,33 @@ body.theme-meadow .account-btn{background:rgba(255,255,255,.75);border-color:rgb
 .theme-option.active{background:#171717;color:white;border-color:#171717}
 body.theme-meadow .theme-option.active{background:#183b60;color:white;border-color:#183b60}
 @media(max-width:520px){.theme-choice{align-items:flex-start;flex-direction:column}.theme-options{width:100%}.theme-option{flex:1}}
+
+/* Reliable three-mode theme system */
+body.theme-dark{--bg:#151619;--paper:#202226;--ink:#f2f2f0;--muted:#a0a2a6;--line:#383a40;--soft:#292b30;--board:#35363b;--board-dark:#25262a;--shadow:0 18px 50px rgba(0,0,0,.3);background:var(--bg);color:var(--ink);color-scheme:dark}
+body.theme-dark .topbar{background:rgba(21,22,25,.9);border-color:var(--line)}
+body.theme-dark .brand i{background:#f2f2f0}
+body.theme-dark .topbar nav button,body.theme-dark .text-btn{color:#aaa}
+body.theme-dark .topbar nav button:hover,body.theme-dark .text-btn:hover{color:#fff}
+body.theme-dark .cat,body.theme-dark .folder,body.theme-dark .settings-card,body.theme-dark .memory-card,body.theme-dark .modal-card{background:#202226;color:#f2f2f0;border-color:#383a40}
+body.theme-dark input,body.theme-dark textarea,body.theme-dark select{background:#17181b;color:#f2f2f0;border-color:#41434a}
+body.theme-dark .bottom-nav{background:rgba(25,26,29,.95);border-color:#383a40}
+body.theme-dark .bottom-nav button{color:#aaa}
+body.theme-dark .account-btn,body.theme-dark .outline-btn,body.theme-dark .back-btn{background:#202226;color:#f2f2f0;border-color:#44464d}
+body.theme-dark .page-head h2,body.theme-dark h1,body.theme-dark h2,body.theme-dark h3,body.theme-dark strong{color:inherit}
+body.theme-dark .tiny,body.theme-dark .counter,body.theme-dark .memory-intro p{color:#a0a2a6}
+body.theme-dark .theme-option.active{background:#f2f2f0;color:#17181b;border-color:#f2f2f0}
+body.theme-minecraft{--line:rgba(255,255,255,.6);--shadow:0 16px 44px rgba(21,48,19,.18);background:#b9d5ff;color:#142a42}
+body.theme-minecraft::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background-image:linear-gradient(180deg,rgba(184,210,255,.08),rgba(25,55,18,.1)),url('/minecraft-cat.jpg');background-size:cover;background-position:center;background-repeat:no-repeat}
+body.theme-minecraft::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(191,216,255,.10),rgba(29,58,19,.12))}
+body.theme-minecraft .topbar{background:rgba(210,229,255,.58);border-color:rgba(255,255,255,.5)}
+body.theme-minecraft .brand i{background:#173a61}
+body.theme-minecraft .topbar nav button,body.theme-minecraft .text-btn{color:#294e72}
+body.theme-minecraft .page-head h2,body.theme-minecraft .home-copy h1{color:#fff;text-shadow:0 2px 16px rgba(21,47,76,.35)}
+body.theme-minecraft .tiny,body.theme-minecraft .counter{color:rgba(255,255,255,.9)}
+body.theme-minecraft .cat,body.theme-minecraft .folder,body.theme-minecraft .settings-card{border:1px solid rgba(255,255,255,.66);background:rgba(255,255,255,.76);backdrop-filter:blur(18px) saturate(1.2);border-radius:22px;box-shadow:0 12px 34px rgba(27,59,25,.14),inset 0 1px rgba(255,255,255,.85)}
+body.theme-minecraft .cat strong,body.theme-minecraft .folder strong{color:#173453}
+body.theme-minecraft .cat small,body.theme-minecraft .cat span,body.theme-minecraft .folder small{color:#496b72}
+body.theme-minecraft .bottom-nav{background:rgba(220,236,255,.9);border-color:rgba(255,255,255,.65)}
+body.theme-minecraft .bottom-nav button{color:#294e72}
+body.theme-minecraft .account-btn{background:rgba(255,255,255,.82);border-color:rgba(255,255,255,.9)}
+body.theme-minecraft .theme-option.active{background:#183b60;color:white;border-color:#183b60}
