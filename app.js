@@ -638,13 +638,16 @@ $("#developerWallBtn").onclick=developerDeleteAll;
 
 
 function applyTheme(theme){
- const next=theme==="meadow"?"meadow":"classic";
- document.body.classList.toggle("theme-meadow",next==="meadow");
+ const allowed=["light","dark","minecraft"];
+ const next=allowed.includes(theme)?theme:"light";
+ document.body.classList.remove("theme-dark","theme-minecraft","theme-meadow");
+ document.body.classList.toggle("theme-dark",next==="dark");
+ document.body.classList.toggle("theme-minecraft",next==="minecraft");
  localStorage.setItem("chungchun_theme",next);
  $$(".theme-option").forEach(b=>b.classList.toggle("active",b.dataset.themeChoice===next));
 }
 $$(".theme-option").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeChoice)));
-applyTheme(localStorage.getItem("chungchun_theme")||"classic");
+applyTheme(localStorage.getItem("chungchun_theme")||"light");
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
