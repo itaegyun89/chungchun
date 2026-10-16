@@ -313,6 +313,10 @@ function makeQuestionFilmDraggable(el){
  });
 }
 function openEditor(q){
+ if(!currentUser){
+  renderAccountUI();setAuthMode("login");$("#authModal").classList.add("show");
+  toast("사진을 묶음에 저장하려면 먼저 로그인하거나 회원가입해줘.");return;
+ }
  selectedQuestion=q;photo="";filter="normal";$("#answerInput").value="";
  $("#printBtn").style.display="block";$("#postToWallBtn").style.display="none";$("#previewQuestion").textContent=q;$("#previewAnswer").textContent="한 줄로 남겨봐.";$("#previewPhoto").innerHTML="<span>PHOTO</span>";$("#editor").classList.add("show");$("#editor").classList.remove("printing");
  $$(".filter-row button").forEach(x=>x.classList.toggle("active",x.dataset.filter==="normal"));
