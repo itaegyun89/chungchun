@@ -651,6 +651,10 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
 };
 
 renderCategories();renderBundle();renderWall();
+// 게시판 공용 목록을 불러오고 새 게시물을 실시간/주기적으로 반영한다.
+connectWallEvents();
+startWallPolling();
+loadWall(true);
 renderAccountUI();
 restoreAccountSession();
 })();
