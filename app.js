@@ -129,8 +129,8 @@ async function syncAccountRecords(mergeLocal=true){
   renderCategories();renderBundle();
 }
 function renderAccountUI(){
-  $("#accountStatus").textContent=currentUser?currentUser.username:"게스트";
   $("#accountBtn").textContent=currentUser?"계정":"로그인";
+  $("#registerBtn").textContent=currentUser?"로그아웃":"회원가입";
   $("#authTitle").textContent=currentUser?"계정":"로그인";
   $("#authDescription").textContent=currentUser?"로그인된 계정으로 묶음이 저장되고 있어.":"계정에 묶음을 저장하고 다른 기기에서도 이어서 기록해.";
   $("#authForm").style.display=currentUser?"none":"block";
@@ -168,6 +168,10 @@ $("#accountBtn").onclick=()=>{
   renderAccountUI();
   if(!currentUser)setAuthMode("login");
   $("#authModal").classList.add("show");
+};
+$("#registerBtn").onclick=()=>{
+  if(currentUser){$("#authLogout").click();return}
+  renderAccountUI();setAuthMode("register");$("#authModal").classList.add("show");
 };
 $("#authLoginTab").onclick=()=>setAuthMode("login");
 $("#authRegisterTab").onclick=()=>setAuthMode("register");
@@ -230,8 +234,9 @@ function appDialog(title,message,mode="confirm",placeholder="",okText="확인",d
  });
 }
 function page(id){
-  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
+  if(id==="home2"){if(!$("#memoryContent").dataset.recordId)renderMemory(true);else renderLauncherMemory();}
   if(id==="memory")renderMemory(true);
   if(id==="wall"){
     loadWall(true);
@@ -361,11 +366,20 @@ $("#printBtn").onclick=async()=>{
 };
 
 
+function renderLauncherMemory(){
+ const host=$("#launcherMemoryPhoto");
+ const rec=records.find(r=>String(r.id)===$("#memoryContent").dataset.recordId);
+ if(!host)return;
+ if(!rec){host.innerHTML="<div class='launcher-memory-empty'></div>";return}
+ const image=safeImageSrc(rec.image);
+ host.innerHTML=image?("<img src=\""+escapeHtml(image)+"\" alt=\"\">"):"<div class='launcher-memory-empty'></div>";
+}
 function renderMemory(draw=false){
  const host=$("#memoryContent");
  if(!records.length){
   host.innerHTML="<div class='memory-empty'><span class='tiny'>NO FILMS YET</span><h3>아직 꺼내 볼 추억이 없어.</h3><p>사진과 한 줄을 기록하면 여기서 랜덤으로 다시 만날 수 있어.</p><button class='black-btn' data-page='record'>첫 기록 남기기</button></div>";
   host.querySelector("[data-page]")?.addEventListener("click",()=>page("record"));
+  renderLauncherMemory();
   return;
  }
  if(!draw&&host.dataset.recordId&&records.some(r=>String(r.id)===host.dataset.recordId))return;
