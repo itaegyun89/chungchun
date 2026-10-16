@@ -636,6 +636,16 @@ async function developerDeleteAll(){
 }
 $("#developerWallBtn").onclick=developerDeleteAll;
 
+
+function applyTheme(theme){
+ const next=theme==="meadow"?"meadow":"classic";
+ document.body.classList.toggle("theme-meadow",next==="meadow");
+ localStorage.setItem("chungchun_theme",next);
+ $(".theme-option").forEach(b=>b.classList.toggle("active",b.dataset.themeChoice===next));
+}
+$(".theme-option").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeChoice)));
+applyTheme(localStorage.getItem("chungchun_theme")||"classic");
+
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
 $("#apiBase").value=ChungChunAPI.config.base;
 async function generateAI(){$("#aiModal").classList.add("show");$("#aiQuestionList").innerHTML="";$("#aiStatus").textContent="추가 지시사항을 입력한 뒤 질문 만들기를 눌러주세요.";}
