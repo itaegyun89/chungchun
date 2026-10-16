@@ -641,9 +641,9 @@ function applyTheme(theme){
  const next=theme==="meadow"?"meadow":"classic";
  document.body.classList.toggle("theme-meadow",next==="meadow");
  localStorage.setItem("chungchun_theme",next);
- $(".theme-option").forEach(b=>b.classList.toggle("active",b.dataset.themeChoice===next));
+ $$(".theme-option").forEach(b=>b.classList.toggle("active",b.dataset.themeChoice===next));
 }
-$(".theme-option").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeChoice)));
+$$(".theme-option").forEach(b=>b.addEventListener("click",()=>applyTheme(b.dataset.themeChoice)));
 applyTheme(localStorage.getItem("chungchun_theme")||"classic");
 
 $("#saveSettings").onclick=()=>{ChungChunAPI.setBase($("#apiBase").value);toast("API 주소를 저장했어")};
