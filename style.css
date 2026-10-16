@@ -435,3 +435,31 @@ a, a:visited, a:hover, a:active {
   }
 }
 
+
+/* Theme switcher: Minecraft meadow option */
+body.theme-meadow{--line:rgba(255,255,255,.52);--shadow:0 16px 44px rgba(21,48,19,.18)}
+body.theme-meadow{background:#b9d5ff;color:#142a42}
+body.theme-meadow::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#b8d2ff 0%,#d8e8ff 44%,#8ab84b 45%,#5b8b32 72%,#6f9d3f 100%);background-size:100% 100%}
+body.theme-meadow::after{content:"";position:fixed;inset:38% 0 0;z-index:-1;pointer-events:none;opacity:.52;background:repeating-linear-gradient(0deg,transparent 0 22px,rgba(37,91,24,.22) 23px 27px,transparent 28px 43px),repeating-linear-gradient(90deg,transparent 0 46px,rgba(255,255,255,.06) 47px 49px,transparent 50px 82px)}
+body.theme-meadow .topbar{background:rgba(210,229,255,.55);border-color:rgba(255,255,255,.4)}
+body.theme-meadow .brand i{background:#173a61}
+body.theme-meadow .topbar nav button,body.theme-meadow .text-btn{color:#496b8f}
+body.theme-meadow .topbar nav button:hover,body.theme-meadow .text-btn:hover{color:#102c4d}
+body.theme-meadow .page-head h2,body.theme-meadow .home-copy h1{color:#fff;text-shadow:0 2px 16px rgba(21,47,76,.24)}
+body.theme-meadow .tiny,body.theme-meadow .counter{color:rgba(255,255,255,.82)}
+body.theme-meadow .cat,body.theme-meadow .folder,body.theme-meadow .settings-card{border:1px solid rgba(255,255,255,.66);background:rgba(255,255,255,.72);backdrop-filter:blur(18px) saturate(1.2);border-radius:22px;box-shadow:0 12px 34px rgba(27,59,25,.12),inset 0 1px rgba(255,255,255,.85)}
+body.theme-meadow .cat:hover{background:rgba(255,255,255,.9);border-color:#fff}
+body.theme-meadow .cat strong,body.theme-meadow .folder strong{color:#173453}
+body.theme-meadow .cat small,body.theme-meadow .cat span,body.theme-meadow .folder small{color:#66809a}
+body.theme-meadow .bottom-nav{background:rgba(220,236,255,.88);border-color:rgba(255,255,255,.65)}
+body.theme-meadow .bottom-nav button{color:#496b8f}
+body.theme-meadow .account-btn{background:rgba(255,255,255,.75);border-color:rgba(255,255,255,.8)}
+.theme-settings{display:grid;gap:22px}
+.theme-choice{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.theme-choice strong{font-size:15px}
+.theme-choice p{margin:7px 0 0;color:#888;font-size:12px}
+.theme-options{display:flex;gap:8px;flex-wrap:wrap}
+.theme-option{padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:inherit;font-size:12px;cursor:pointer}
+.theme-option.active{background:#171717;color:white;border-color:#171717}
+body.theme-meadow .theme-option.active{background:#183b60;color:white;border-color:#183b60}
+@media(max-width:520px){.theme-choice{align-items:flex-start;flex-direction:column}.theme-options{width:100%}.theme-option{flex:1}}
