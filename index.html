@@ -10,7 +10,14 @@
 <body>
 <div id="app">
 <header class="topbar">
-  <div class="account-actions"><button id="accountBtn" class="account-btn">로그인</button><button id="registerBtn" class="account-btn">회원가입</button></div>
+  <button class="brand" data-page="home"><i></i><span>청춘묶음</span></button>
+  <nav>
+    <button data-page="record">기록</button>
+    <button data-page="bundle">묶음</button>
+    <button data-page="wall">벽</button>
+    <button data-page="memory">추억</button>
+  </nav>
+  <div class="account-actions"><span id="accountStatus">게스트</span><button id="accountBtn" class="account-btn">로그인</button></div>
 </header>
 
 <main>
@@ -20,12 +27,12 @@
       <span class="tiny">PHOTO / QUESTION / ANSWER</span>
       <h1>청춘묶음</h1>
       <p>PHOTO · QUESTION · ONE LINE</p>
-      <button class="black-btn" data-page="home2">시작하기</button>
+      <button class="black-btn" data-page="record">기록 시작</button>
     </div>
   </div>
 </section>
 
-<section id="home2" class="page"><div class="launcher-layout"><nav class="launcher-menu" aria-label="주 메뉴"><button data-page="record">기록</button><button data-page="bundle">묶음</button><button data-page="memory">추억</button><button data-page="wall">게시판</button></nav><button class="launcher-memory" id="launcherMemory" data-page="memory" aria-label="추억 사진 열기"><div id="launcherMemoryPhoto" class="launcher-memory-photo"></div></button></div></section>
+
 
 <section id="record" class="page">
   <div class="page-head"><div><span class="tiny">01 / RECORD</span><h2>기록</h2></div><button class="text-btn" data-page="home">처음으로</button></div>
@@ -66,6 +73,9 @@
     <button id="saveSettings" class="black-btn">저장</button>
   </div>
 </section>
+<div class="bottom-nav">
+  <button data-page="record">기록</button><button data-page="bundle">묶음</button><button data-page="memory">추억</button><button data-page="wall">벽</button><button data-page="settings">설정</button>
+</div>
 </main>
 
 
