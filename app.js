@@ -234,7 +234,7 @@ function appDialog(title,message,mode="confirm",placeholder="",okText="확인",d
  });
 }
 function page(id){
-  $(".page").forEach(x=>x.classList.toggle("active",x.id===id));
+  $$(".page").forEach(x=>x.classList.toggle("active",x.id===id));
   window.scrollTo(0,0);
   if(id==="home2"){if(!$("#memoryContent").dataset.recordId)renderMemory(true);else renderLauncherMemory();}
   if(id==="memory")renderMemory(true);
