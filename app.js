@@ -340,6 +340,7 @@ $("#printBtn").onclick=async()=>{
  const answer=$("#answerInput").value.trim();
  if(!photo){toast("사진을 먼저 선택해주세요.");return}
  if(!answer){toast("한 줄 답변을 남겨주세요.");return}
+ if(records.filter(r=>r.category===selectedCategory).length>=10){toast("이 묶음에는 최대 10장까지 저장할 수 있어.");return}
  const btn=$("#printBtn");btn.disabled=true;btn.textContent="인화 중...";
  const rec={id:Date.now(),category:selectedCategory,sub:selectedSubs.join(", "),question:selectedQuestion,answer,image:photo,filter,createdAt:new Date().toISOString(),posted:false,ownerToken};
  records.push(rec);
@@ -647,7 +648,4 @@ window.generateQuestionsFromAPI=async function(category,sub="",instruction=""){
 renderCategories();renderBundle();renderWall();
 renderAccountUI();
 restoreAccountSession();
-$(".topbar nav button,.bottom-nav button").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
-// Explicitly bind the new memory navigation after all generic navigation handlers.
-$$("[data-page=\"memory\"]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();page("memory")}));
 })();
