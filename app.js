@@ -249,7 +249,8 @@ window.addEventListener("popstate",event=>{
 $$("[data-page]").forEach(b=>b.onclick=()=>page(b.dataset.page));
 
 function renderCategories(){
- $("#categoryGrid").innerHTML=Object.keys(categories).map((c,i)=>`<button class="cat" data-cat="${c}"><small>0${i+1}</small><strong>${c}</strong><span>${records.filter(r=>r.category===c).length}장</span></button>`).join("");
+ const categoryOrder=Object.keys(categories).sort((a,b)=>(a==="학교"?-1:b==="학교"?1:0));
+  $("#categoryGrid").innerHTML=categoryOrder.map((c,i)=>`<button class="cat ${c==="학교"?"cat-school":""}" data-cat="${c}"><small>${String(i+1).padStart(2,"0")}</small><strong>${c}</strong><span>${records.filter(r=>r.category===c).length}장</span></button>`).join("");
  $$(".cat").forEach(b=>b.onclick=()=>openCategory(b.dataset.cat));
 }
 function openCategory(cat){
