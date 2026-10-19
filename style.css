@@ -497,7 +497,6 @@ body.theme-minecraft .theme-option.active{background:#183b60;color:white;border-
 @media(max-width:700px){body.theme-minecraft{background-size:auto 100vh;background-position:center top;background-attachment:scroll}}
 
 /* Highlight the School category as the primary starting point. */
-.category-grid .cat-school{grid-column:span 2;grid-row:span 1;min-height:190px;background:#171717;color:#fff;border-color:#171717;padding:26px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
-.category-grid .cat-school small,.category-grid .cat-school span{color:#c7c7c7}
+.category-grid .cat-school{grid-column:span 2;grid-row:span 1;min-height:190px;padding:26px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
 .category-grid .cat-school strong{font-size:32px;letter-spacing:-.06em}
 @media(max-width:520px){.category-grid .cat-school{min-height:150px;padding:18px}.category-grid .cat-school strong{font-size:25px}}
