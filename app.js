@@ -161,7 +161,7 @@ async function restoreAccountSession(){
 }
 $("#accountBtn").onclick=()=>{
   renderAccountUI();
-  if(!currentUser)setAuthMode("login");
+  if(!currentUser)setAuthMode("register");
   $("#authModal").classList.add("show");
 };
 $("#authLoginTab").onclick=()=>setAuthMode("login");
